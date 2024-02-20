@@ -17,8 +17,8 @@ int main(){
         printf("[CHILD] getpid()= %d, getppid()=%d\n",getpid(),getppid());
         exit(0);
     } else { //kwdikas tou patera
-        printf("[PARENT] getpid()= %d, getppid()=%d\n",getpid(),getppid());
         wait(&status);
+        printf("[PARENT] getpid()= %d, getppid()=%d\n",getpid(),getppid());
         exit(0); 
             }
 }
