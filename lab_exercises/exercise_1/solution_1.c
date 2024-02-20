@@ -10,7 +10,7 @@ int main(){
     child = fork();
 
     if (child<0){
-        printf("dhmiourgia pediou apetixe");
+        perror("dhmiourgia pediou apetixe");
     }   else if (child==0){
         pid_t parent_pid;
         parent_pid = getppid();
