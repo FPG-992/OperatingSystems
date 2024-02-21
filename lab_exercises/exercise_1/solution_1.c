@@ -27,11 +27,17 @@ if (argc <2 || argc > 2){ //ligotero apo 1 argument kai perissotero apo 1 argume
     return 0;
 }
 //dieukrinish 3
+
+    int fd = open(argv[1], O_CREAT | O_APPEND | O_WRONLY, 0644); //auto edw einai gia thn eggrafh sto arxeio 
+    
     int status;
     pid_t child;
     child = fork();
 
-    const char *buf = "Test\n"; //to periexomeno pou tha grapsei sto arxeio
+    char buf[100]; //dinw arketes theseis gia na mhn exw provlima me to buffer 
+    //sthn ekfwnish ths ergasthriakhs uphrxe paradeigma to opoio omws de mporei na efarmostei
+    //ston sugkekrimeno kwdika
+
 
     if (child<0){
         perror("dhmiourgia pediou apetixe");
@@ -39,16 +45,25 @@ if (argc <2 || argc > 2){ //ligotero apo 1 argument kai perissotero apo 1 argume
         pid_t parent_pid;
         parent_pid = getppid();
         printf("[CHILD] getpid()= %d, getppid()=%d\n",getpid(),getppid());
+        
+        sprintf(buf, "[CHILD] getpid()= %d, getppid()=%d\n",getpid(),getppid()); //sprintf gia na grapsei to periexomeno sto buf (storeprintf)
+        if (write(fd, buf, strlen(buf)) < strlen(buf)){
+            perror("write");
+            return 1;
+        }
+        close(fd);
+
         exit(0);
     } else { //kwdikas tou patera
         wait(&status);
         printf("[PARENT] getpid()= %d, getppid()=%d\n",getpid(),getppid());
 
-        int fd = open(argv[1], O_CREAT | O_APPEND | O_WRONLY, 0644); //auto edw einai gia thn eggrafh sto arxeio 
-        if (fd == -1){ //prepei na einai mesa sto parent process giati mono tote tha grapsw sto arxeio
+        if (fd == -1){
             perror("open");
             return 1;
         }
+
+        sprintf(buf, "[PARENT] getpid()= %d, getppid()=%d\n",getpid(),getppid()); //sprintf gia na grapsei to periexomeno sto buf (storeprintf)
         if (write(fd, buf, strlen(buf)) < strlen(buf)){
             perror("write");
             return 1;
