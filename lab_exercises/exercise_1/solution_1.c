@@ -12,7 +12,6 @@ int main(int argc, char *argv[]){
     child = fork();
 
     const char *buf = "Test\n"; //to periexomeno pou tha grapsei sto arxeio
-    
 
     if (child<0){
         perror("dhmiourgia pediou apetixe");
@@ -38,9 +37,6 @@ int main(int argc, char *argv[]){
         
         exit(0); 
             }
-
-        
-    
 
     return 0;
 }
