@@ -27,9 +27,9 @@ if (strcmp(argv[1], "--help") == 0) {
     //creating N children processes
     for (int i=0; i<N; i++){
         int status;
+        pid_t child = fork();
         pid_t pid = getpid();
         pid_t ppid = getppid();
-        pid_t child = fork();
 
         if (child==-1){
             perror("Fork didn't work");
@@ -37,6 +37,7 @@ if (strcmp(argv[1], "--help") == 0) {
         }
         if (child==0){
             printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
+            exit(0); //this stops the child process from creating more children
         }
         else{
             if (wait(&status)==-1){
