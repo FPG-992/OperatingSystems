@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <Kernel/string.h>
+#include <string.h>
 
 
 
@@ -22,6 +22,8 @@ if (strcmp(argv[1], "--help") == 0) {
     return 1;
 }
 //PJF is checking if the line argument contains something other than t or f 
+
+
     //creating N children processes
     for (int i=0; i<N; i++){
         int status;
@@ -36,8 +38,12 @@ if (strcmp(argv[1], "--help") == 0) {
         if (child==0){
             printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
         }
+        else{
+            if (wait(&status)==-1){
+                printf("Error: Process has no child-proceses\n");
+                return 1;
+                }
+        }
     }
-
-
 
 }
