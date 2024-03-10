@@ -10,6 +10,7 @@
 
 
 
+// Declearing them as global, because we need them inside `sig_handler`
 time_t t;
 char state;
 char id[5];
@@ -46,6 +47,9 @@ void sig_handler(int signal) {
             printf("[ID=%s / PID=%d / TIME=%ld] The gates are open!\n", id, pid, local_t - t);
         }
     }
+    else if (signal == SIGSTOP) {
+        // Resuming the process by doing nothing when something trying to pause it.
+    }
 }
 
 void set_signal_action() {
@@ -63,6 +67,7 @@ void set_signal_action() {
     sigaction(SIGUSR1, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
     sigaction(SIGUSR2, &act, NULL);
+    sigaction(SIGSTOP, &act, NULL);
 }
 
 
@@ -75,20 +80,20 @@ int main(int argc, char* argv[]) {
     strcpy(id, argv[1]);
     state = *argv[2];
 
-    time(&t); // capturing in the variable 't' the system seconds
+    time(&t); // capturing the system seconds in the variable t
 
 	set_signal_action();
 
     /*
     Tο bug που βρηκα ειναι οτι αν κληθουν στο καπακι δυο alarm, μονο το τελευταιο θα λιετουργησει
     Για τον λογο αυτο δεν χρησιμοποιω την alarm, διοτι το παρακατω timer δεν εχει μεγαλη ακριβεια
-    με αποτελεσμα να συνεπιπταν εντος του χρονου, δυο η περισσοτερα alarms, οποτε εχανα μερικα 
+    με αποτελεσμα να συμπιμπτουν δυο alarm εντος του χρονου (15 δευτερολεπτα), οποτε εχανα μερικα 
     print states.
     */
 
+    // Create a timer and send `SIGALRM` signals manualy
     time_t current = time(0);
     time_t stop = current;
-
 	while(1) {
         if (current >= stop) {
             kill(getpid(), SIGALRM);
