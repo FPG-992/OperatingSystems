@@ -11,6 +11,18 @@ int main(int argc, char *argv[]){
     int N = strlen(argv[1]);
     pid_t parent = getpid();
 
+//check that command line argument is one and only one
+ if (argc!=2){
+        printf("Usage: ./gates Nstates\n");
+        return 1;
+ }
+ //check for --help argument
+if (strcmp(argv[1], "--help") == 0) {
+    printf("Usage: ./gates Nstates\n");
+    return 1;
+}
+//PJF is checking if the line argument contains something other than t or f 
+    //creating N children processes
     for (int i=0; i<N; i++){
         int status;
         pid_t pid = getpid();
@@ -22,7 +34,7 @@ int main(int argc, char *argv[]){
             return 1;
         }
         if (child==0){
-            printf()
+            printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
         }
     }
 
