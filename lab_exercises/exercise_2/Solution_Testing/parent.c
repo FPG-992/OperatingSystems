@@ -5,17 +5,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+//alarm
+unsigned int alarm(unsigned int seconds);
 
 int main(int argc, char *argv[]){
     int N = strlen(argv[1]);
     pid_t parent = getpid();
+
+//set alarm for 15 seconds
+alarm(15);
 
 //check that command line argument is one and only one
  if (argc!=2){
         printf("Usage: ./gates Nstates\n");
         return 1;
  }
+ 
  //check for --help argument
 if (strcmp(argv[1], "--help") == 0) {
     printf("Usage: ./gates Nstates\n");
