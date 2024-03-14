@@ -1,7 +1,7 @@
-1. Create N processes children 
+1. Create N processes children  - Done
 2. User to send SIGUSR1, SIGUSR2, SIGTERM to father process and children processes
 3. A process handles the corresponding "gate"
-4. Parent takes as an input Number of gates, initial state as a string of "t" and "f" characters
+4. Parent takes as an input Number of gates, initial state as a string of "t" and "f" characters - Done
 5. Parent creates processes and prints initial states with pid 
 6. Children Processes
 7. every 15 seconds print their state with alarm and the time since their creation
@@ -17,6 +17,7 @@
     if a child stopped, it makes it resume
     N child should always be active, one for every gate
 16. Parent Process can get a signal from the terminal by the user
+17. Input is "kill -SIGRΤERM 100"
 
 -Check for argc,argv correctness, print message
 -Check for errors in syscalls
