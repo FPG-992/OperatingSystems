@@ -43,4 +43,18 @@ if (strcmp(argv[1], "--help") == 0) {
         }
     }
 
+char command[10];
+char signal[10];
+
+//check for input
+while (1){
+    scanf("%s",command);
+    if (strcmp(command,"kill")){ //if true, this returns 0, if not it returns something different than 0
+        printf("Wrong usage of command.\n Usage is 'Kill -Signal PID\n");
+    }else{
+        scanf("s",signal);
+        
+    }
+}
+
 }
