@@ -4,10 +4,11 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define MAX_CHILDREN 1000000
 int main(int argc, char *argv[]){
     pid_t parent = getpid();
-
+    pid_t signal_pid;
+    pid_t child_pid[MAX_CHILDREN];
 //check that command line argument is one and only one
  if (argc!=2){
         printf("Usage: ./gates Nstates\n");
@@ -33,6 +34,7 @@ if (strcmp(argv[1], "--help") == 0) {
         }
         if (child==0){
             printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
+            child_pid[i]=pid;
             exit(0); //this stops the child process from creating more children
         }
         else{
@@ -53,8 +55,20 @@ while (1){
         printf("Wrong usage of command.\n Usage is 'Kill -Signal PID\n");
     }else{
         scanf("s",signal);
-        
+        if (!(strcmp(signal,"SIGTERM") || strcmp(signal,"SIGUSR1") || strcmp(signal,"SIGUSR2"))){
+            printf("Wrong usage of command.\n Usage is 'Kill -Signal PID\n");
+        }else{
+            scanf("%d",&signal_pid);
+            for (int i=0;i<N; i++){
+                if (child_pid[i]==signal_pid){
+                    kill(signal_pid,signal);
+                    printf("Sent signal %s to process %d\n",signal,signal_pid);
+                }
+            }
+        }
     }
 }
+
+
 
 }
