@@ -60,6 +60,9 @@ while (1){
         }else{
             scanf("%d",&signal_pid);
             for (int i=0;i<N; i++){
+                if (signal_pid=parent){
+                break;
+                }
                 if (child_pid[i]==signal_pid){
                     kill(signal_pid,signal);
                     printf("Sent signal %s to process %d\n",signal,signal_pid);
