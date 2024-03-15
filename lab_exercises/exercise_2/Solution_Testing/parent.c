@@ -4,12 +4,31 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <asm/signal.h>
+#include <asm-generic/siginfo.h>
 #define MAX_CHILDREN 1000000
+
+
+struct sigaction {
+void (*sa_handler)(int); // καθορίζει τη δράση που πρέπει να συσχετιστεί με το signum
+void (*sa_sigaction)(int, siginfo_t *, void *); // Εάν ορίζεται SA_SIGINFO στο sa_flags, τότε
+                                                 // στο sa_sigaction (αντί του sa_handler) καθορίζεται η λειτουργία χειρισμού για το signum
+                                                // μην εκχωρήσετε τιμή και στα δύο: sa_handler και sa_sigaction
+sigset_t sa_mask; //καθορίζει μια μάσκα σημάτων που πρέπει να αποκλειστούν
+int sa_flags; //καθορίζει ένα σύνολο σημαιών που τροποποιούν τη συμπεριφορά του σήματος
+void (*sa_restorer)(void); // Το πεδίο δεν προορίζεται για application use
+};
+
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+
+
 int main(int argc, char *argv[]){
     pid_t parent = getpid();
     pid_t signal_pid;
     pid_t child_pid[MAX_CHILDREN];
 //check that command line argument is one and only one
+int find =-1; //this is a helping variable to check if the pid exists in the array or is parent pid
+
  if (argc!=2){
         printf("Usage: ./gates Nstates\n");
         return 1;
@@ -59,17 +78,22 @@ while (1){
             printf("Wrong usage of command.\n Usage is 'Kill -Signal PID\n");
         }else{
             scanf("%d",&signal_pid);
-            for (int i=0;i<N; i++){
-                if (signal_pid=parent){
-                break;
-                }
-                if (child_pid[i]==signal_pid){
-                    kill(signal_pid,signal);
-                    printf("Sent signal %s to process %d\n",signal,signal_pid);
+            if (signal_pid==parent){
+                find = parent;
+            } else {
+                for (int i=0; i<N; i++){
+                    if (signal_pid==child_pid[i]){
+                        find = child_pid[i];
+                    } else { 
+                        if (find==-1){
+                            printf("PID not found\nNo changes have been made \n");
+                        }
+                    }
                 }
             }
         }
     }
+    
 }
 
 
