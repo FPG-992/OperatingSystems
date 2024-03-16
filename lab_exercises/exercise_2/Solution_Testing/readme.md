@@ -5,7 +5,7 @@
 5. Parent creates processes and prints initial states with pid 
 6. Children Processes
 7. every 15 seconds print their state with alarm and the time since their creation
-8. When signal SIGUSR1 is received they print their state, (boolean ) and time since creeation
+8. When signal SIGUSR1 is received they print their state, (boolean) and time since creation
 9. SIGUSR2 state gets flipped
 10. SIGTERM , children processes get terminated
 11. Children processes can get their signal from the parent process.

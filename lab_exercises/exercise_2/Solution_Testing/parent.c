@@ -54,7 +54,10 @@ if (strcmp(argv[1], "--help") == 0) {
         if (child==0){
             printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
             child_pid[i]=pid;
-            exit(0); //this stops the child process from creating more children
+            char *args[]={"./child",i,NULL};
+            execvp(args[0],args); //execvp replaces the current process with a new process
+            perror("execvp failed\n");
+            exit(EXIT_FAILURE); //this stops the child process from creating more children, termination of child process
         }
         else{
             if (wait(&status)==-1){
@@ -66,7 +69,6 @@ if (strcmp(argv[1], "--help") == 0) {
 
 char command[10];
 char signal[10];
-
 //check for input
 while (1){
     scanf("%s",command);
@@ -93,6 +95,7 @@ while (1){
             }
         }
     }
+    //lets pass the signals to the children || parent | Here we have -command which we have to convert to signal
     
 }
 
