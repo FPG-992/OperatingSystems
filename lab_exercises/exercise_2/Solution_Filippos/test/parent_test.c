@@ -43,26 +43,28 @@ for (int i=0; i<N; i++){
     pid_t pid = getpid();
     pid_t ppid = getppid();
 
+
     if (child==-1){
         perror("Fork didn't work");
         return 1;
     }
     if (child==0){
         printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
-        child_pid[i]=pid;
         char str[10]; //buffer to store the integer value of i
         sprintf(str, "%d", i); //converts i to string
         //char *args[]={"./child",i,NULL};
         // execvp(args[0],args); //execvp replaces the current process with a new process
         // perror("execvp failed\n");
         exit(EXIT_FAILURE); //this stops the child process from creating more children, termination of child process
-    }
+    } 
     else{ //parent process
+    child_pid[i]=child;
         if (wait(&status)==-1){
             printf("Error: Process has no child-proceses\n");
             return 1;
-            }
+            } 
     }
+    printf("Child_Pids: %d\n",child_pid[i]);
 }
 
 //checking for command input
@@ -72,13 +74,11 @@ while(1){
         printf("Command: %s, Signal: %s, PID: %d\n",command,signal,signal_pid);
         if (strcmp(command,"kill")!=0){ //if true, this returns 0, if not it returns something different than 0
             printf("Wrong usage of command.\nUsage is 'kill -Signal PID\n");
-            break;
         }else {
             printf("Command is correct\n");
         }
         if (strcmp(signal,"-SIGTERM")!=0 && strcmp(signal,"-SIGUSR1")!=0 && strcmp(signal,"-SIGUSR2")!=0){
-                printf("Wrong usage of command.\nUsage is 'Kill -Signal PID\n");
-                break;
+                printf("Wrong usage of Signal.\nUsage is 'Kill -Signal PID\n");
         }else {
             printf("Signal is correct\n");
         }
@@ -86,24 +86,21 @@ while(1){
         if (signal_pid==parent){    
          find = parent;
          printf("Parent found\n");
-         break;
         } else if(signal_pid!=parent){
             for (int i=0; i<N; i++){
                 if (signal_pid==child_pid[i]){
                     find = child_pid[i];
                     printf("Child found\n");
                     break;
-                } else { 
-                    if (find==-1){
-                        printf("PID not found\nNo changes have been made \n");
-                    }
-                }
+                } 
+            }
+            if (find==-1){
+                printf("PID not found\nNo changes have been made \n");
             }
         }
+}
+           
     //clearing input buffer, PJF
     while (getchar() != '\n'){printf("Enter new command:\n");}
-    }
-
-
 
 }
