@@ -13,7 +13,7 @@ pid_t child_pid[MAX_CHILDREN]; //array to store child pids
 char command[10];
 char signal[10];
 pid_t find;
-
+char index[10]; //buffer to store the integer value of i
 //check for argc, argv input errors
 if (argv[1] != NULL && strcmp(argv[1], "--help") == 0) { //error exception because !=NULL was not in the if statement
     printf("Usage: ./gates Nstates\n");
@@ -50,11 +50,11 @@ for (int i=0; i<N; i++){
     }
     if (child==0){
         printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
-        char str[10]; //buffer to store the integer value of i
-        sprintf(str, "%d", i); //converts i to string
-        //char *args[]={"./child",i,NULL};
-        // execvp(args[0],args); //execvp replaces the current process with a new process
-        // perror("execvp failed\n");
+        sprintf(index, "%d", i); //converts i (index) to string
+        char *args[]={"./child",index,argv[1],NULL};
+        if(execvp(args[0],args)==-1){ //execvp replaces the current process with a new process
+        perror("execvp failed\n");
+        }
         exit(EXIT_FAILURE); //this stops the child process from creating more children, termination of child process
     } 
     else{ //parent process
