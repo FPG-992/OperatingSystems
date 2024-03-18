@@ -16,8 +16,8 @@ pid_t find;
 char idx[10]; //buffer to store the integer value of i
 int N;
 
-void handler(){
-  if (strcmp(signal_str,"-SIGTERM")==0){
+void handler(int signal){
+  if (signal==SIGTERM){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGTERM);
@@ -28,7 +28,7 @@ void handler(){
                     printf("Child %d terminated\n",signal_pid);
                 }
             }
-            if (strcmp(signal_str,"-SIGUSR1")==0){
+            if (signal==SIGUSR1){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGUSR1);
@@ -39,7 +39,7 @@ void handler(){
                     printf("Child %d received SIGUSR1\n",signal_pid);
                 }
             }
-            if (strcmp(signal_str,"-SIGUSR2")==0){
+            if (signal==SIGUSR2){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGUSR2);
