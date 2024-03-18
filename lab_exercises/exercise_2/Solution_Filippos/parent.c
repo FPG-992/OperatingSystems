@@ -7,8 +7,17 @@
 #define MAX_CHILDREN 1000000
 #define _XOPEN_SOURCE 700 // resolves the `struct sigaction sa` incomplete type error
 
-void handler(int signum){
-  if (strcmp(signal,"-SIGTERM")==0){
+pid_t parent;
+pid_t signal_pid;
+pid_t child_pid[MAX_CHILDREN]; //array to store child pids
+char command[10];
+char signal_str[10];
+pid_t find;
+char idx[10]; //buffer to store the integer value of i
+int N;
+
+void handler(){
+  if (strcmp(signal_str,"-SIGTERM")==0){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGTERM);
@@ -19,7 +28,7 @@ void handler(int signum){
                     printf("Child %d terminated\n",signal_pid);
                 }
             }
-            if (strcmp(signal,"-SIGUSR1")==0){
+            if (strcmp(signal_str,"-SIGUSR1")==0){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGUSR1);
@@ -30,7 +39,7 @@ void handler(int signum){
                     printf("Child %d received SIGUSR1\n",signal_pid);
                 }
             }
-            if (strcmp(signal,"-SIGUSR2")==0){
+            if (strcmp(signal_str,"-SIGUSR2")==0){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
                         kill(child_pid[i],SIGUSR2);
@@ -57,13 +66,7 @@ void setup_sigaction() {
 
 
 int main(int argc, char* argv[]){
-pid_t parent = getpid();
-pid_t signal_pid;
-pid_t child_pid[MAX_CHILDREN]; //array to store child pids
-char command[10];
-char signal[10];
-pid_t find;
-char index[10]; //buffer to store the integer value of i
+parent=getpid();
 //enabling sigaction
 setup_sigaction();
 //check for argc, argv input errors
@@ -87,7 +90,7 @@ for (int i=0; i<strlen(argv[1]); i++){ //check if there are only t and f in the 
 }
 
 //creating N children processes
-int N = strlen(argv[1]); // For creating child processes
+N = strlen(argv[1]); // For creating child processes
 
 for (int i=0; i<N; i++){
     int status;
@@ -102,8 +105,8 @@ for (int i=0; i<N; i++){
     }
     if (child==0){
         printf("[PARENT/PID=%d] Created child %d (PID=%d) and initial state '%c'\n",ppid,i,pid,argv[1][i]);
-        sprintf(index, "%d", i); //converts i (index) to string
-        char *args[]={"./child",index,argv[1],NULL};
+        sprintf(idx, "%d", i); //converts i (idx) to string
+        char *args[]={"./child",idx,argv[1],NULL};
         if(execvp(args[0],args)==-1){ //execvp replaces the current process with a new process
         perror("execvp failed\n");
         }
@@ -122,14 +125,14 @@ for (int i=0; i<N; i++){
 //checking for command input
 
 while(1){
-        scanf("%s %s %d",command,signal,&signal_pid);
-        printf("Command: %s, Signal: %s, PID: %d\n",command,signal,signal_pid);
+        scanf("%s %s %d",command,signal_str,&signal_pid);
+        printf("Command: %s, Signal: %s, PID: %d\n",command,signal_str,signal_pid);
         if (strcmp(command,"kill")!=0){ //if true, this returns 0, if not it returns something different than 0
             printf("Wrong usage of command.\nUsage is 'kill -Signal PID\n");
         }else {
             printf("Command is correct\n");
         }
-        if (strcmp(signal,"-SIGTERM")!=0 && strcmp(signal,"-SIGUSR1")!=0 && strcmp(signal,"-SIGUSR2")!=0){
+        if (strcmp(signal_str,"-SIGTERM")!=0 && strcmp(signal_str,"-SIGUSR1")!=0 && strcmp(signal_str,"-SIGUSR2")!=0){
                 printf("Wrong usage of Signal.\nUsage is 'Kill -Signal PID\n");
         }else {
             printf("Signal is correct\n");
@@ -153,16 +156,16 @@ while(1){
         if (find==-1){
             break;
         }else{
-            if (strcmp(signal,"-SIGTERM")==0){
+            if (strcmp(signal_str,"-SIGTERM")==0){
                 if (kill(signal_pid,SIGTERM)==-1){
                     perror("Signal not sent\n");
                 } 
-            if (strcmp(signal,"-SIGUSR1")==0){
+            if (strcmp(signal_str,"-SIGUSR1")==0){
                 if (kill(signal_pid,SIGUSR1)==-1){
                     perror("Signal not sent\n");
                 }
             }
-            if (strcmp(signal,"-SIGUSR2")==0){
+            if (strcmp(signal_str,"-SIGUSR2")==0){
                 if (kill(signal_pid,SIGUSR2)==-1){
                     perror("Signal not sent\n");
                 }
@@ -175,38 +178,4 @@ while(1){
 
 }
 
-/* function for executing the commands
-if (strcmp(signal,"-SIGTERM")==0){
-                if (signal_pid==parent){
-                    for(int i=0; i<N; i++){
-                        kill(child_pid[i],SIGTERM);
-                        printf("Child %d terminated\n",child_pid[i]);
-                    }
-                } else {
-                    kill(signal_pid,SIGTERM);
-                    printf("Child %d terminated\n",signal_pid);
-                }
-            }
-            if (strcmp(signal,"-SIGUSR1")==0){
-                if (signal_pid==parent){
-                    for(int i=0; i<N; i++){
-                        kill(child_pid[i],SIGUSR1);
-                        printf("Child %d received SIGUSR1\n",child_pid[i]);
-                    }
-                } else {
-                    kill(signal_pid,SIGUSR1);
-                    printf("Child %d received SIGUSR1\n",signal_pid);
-                }
-            }
-            if (strcmp(signal,"-SIGUSR2")==0){
-                if (signal_pid==parent){
-                    for(int i=0; i<N; i++){
-                        kill(child_pid[i],SIGUSR2);
-                        printf("Child %d received SIGUSR2\n",child_pid[i]);
-                    }
-                } else {
-                    kill(signal_pid,SIGUSR2);
-                    printf("Child %d received SIGUSR2\n",signal_pid);
-                }
-            }
-*/
+}
