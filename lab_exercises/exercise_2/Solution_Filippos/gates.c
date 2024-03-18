@@ -11,6 +11,9 @@ pid_t parent;
 pid_t child;
 pid_t signal_pid;
 pid_t child_pid[MAX_CHILDREN]; //array to store child pids
+pid_t pid;
+pid_t ppid;
+int child_index;
 char command[10];
 char signal_str[10];
 pid_t find;
@@ -51,6 +54,25 @@ int create_child(pid_t *child, pid_t *pid, pid_t *ppid, int index, char state) {
 }
 
 void handler(int signal){
+    if (signal==SIGCHLD){
+        if (wait_status==2304){
+            //child state was 't'
+            if (create_child(&child, &child_pid[child_index], &parent, child_index, 't') == -1){
+                exit(1);
+            }
+            if (child!=0){
+             printf("[PARENT/PID=%d] Created new child for gate %d (PID %d) and initial state 't'\n", parent, child_index, child);   
+            }
+        }
+    }else if (wait_status == 2560) {
+            // Child's state was 't'
+            if (create_child(&child, &pid, &ppid, child_index, 'f') == 1) {
+                exit(1);
+            }
+            if (child != 0) {
+                printf("[PARENT/PID=%d] Created new child for gate %d (PID %d) and initial state 'f'\n", pid, find, child);
+            }
+    }
   if (signal==SIGTERM){
                 if (signal_pid==parent){
                     for(int i=0; i<N; i++){
@@ -155,6 +177,7 @@ while(1){
             for (int i=0; i<N; i++){
                 if (signal_pid==child_pid[i]){
                     find = child_pid[i];
+                    child_index = i;
                     printf("Child found\n");
                     break;
                 } 
@@ -172,9 +195,9 @@ while(1){
                 } 
                 printf("[PARENT/PID=%d] Child with PID=%d exited\n", parent, child);
                 if (signal_pid != parent) {
-                                if (waitpid(signal_pid, &wait_status, 0) == -1) {
-                                    return -1;
-                                }
+                    if (waitpid(signal_pid, &wait_status, 0) == -1) {
+                        return -1;
+                        }
             }
             if (strcmp(signal_str,"-SIGUSR1")==0){
                 if (kill(signal_pid,SIGUSR1)==-1){
