@@ -11,7 +11,7 @@
 
 
 // Declearing them as global, because we need them inside `sig_handler`
-time_t t;
+time_t t; // The time when the child process was created
 char state;
 char id[5];
 
@@ -19,9 +19,9 @@ char id[5];
 void sig_handler(int signal) {
     pid_t pid = getpid();
     pid_t ppid = getppid();
-    time_t local_t;
+    time_t local_t; // The time when the signal was received
 
-    time(&local_t);
+    time(&local_t); 
 
 	if (signal == SIGALRM || signal == SIGUSR1) {
         if (state == 't') {
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    strcpy(id, argv[1]);
-    state = *argv[2];
+    strcpy(id, argv[1]); // The id of the child
+    state = *argv[2]; // The state of the child
 
     time(&t); // capturing the system seconds in the variable t
 
@@ -92,15 +92,15 @@ int main(int argc, char* argv[]) {
     */
 
     // Create a timer and send `SIGALRM` signals manualy
-    time_t current = time(0);
-    time_t stop = current;
-	while(1) {
-        if (current >= stop) {
-            kill(getpid(), SIGALRM);
-            stop = current + 15;
+    time_t current = time(0); // capturing the system seconds in the variable current
+    time_t stop = current; // capturing the system seconds in the variable stop
+	while(1) { // Infinite loop
+        if (current >= stop) { //
+            kill(getpid(), SIGALRM); // Send the `SIGALRM` signal to the process
+            stop = current + 15; // Set the next alarm to be triggered after 15 seconds
         }
-        current = time(0);
-    }
+        current = time(0); // capturing the system seconds in the variable current
+    } 
 
 	return 0;
 }
