@@ -11,8 +11,8 @@
 
 
 int main(int argc, char* argv[]){
-
-
+int pd[2]; //pipe descriptor , one edge for reading and one for writing| PD1 = Write Edge | PD2=Read Edge
+pipe(pd);
 
 
 
