@@ -20,6 +20,7 @@
 #define WRITEEND 1
 
 
+// Global variables which we'll use both on signal handler and inside of main
 pid_t *child_pid;
 int N;
 pid_t pid;
@@ -27,11 +28,7 @@ pid_t pid;
 
 void sig_handler(int signal) {
     if (signal == SIGTERM) {
-        for (int i=0; i<N; ++i) {
-            printf("%d ", child_pid[i]);
-        }
-        printf("\n");
-
+        // Iterating to terminate each child first
         for (int i=0; i<N; ++i) {
             printf("[PARENT/PID=%d] Waiting for %d children to exit\n", pid, N-i);
 
@@ -42,6 +39,7 @@ void sig_handler(int signal) {
             printf("[PARENT/PID=%d] Child with PID=%d terminated successfully\n", pid, child_pid[i]);
         }
 
+        // Terminating the parent process
         printf("[PARENT/PID=%d] All children exited, terminating as well\n", pid);
         exit(0);
     }
@@ -49,12 +47,16 @@ void sig_handler(int signal) {
 
 
 void set_signal_action() {
+    // Declaring the sigaction structure
 	struct sigaction act;
 
+    // Setting all of the structure's bits to 0 to avoid errors relating to uninitialized variables
 	bzero(&act, sizeof(act));
-
+    
+    // Setting the signal handler as the default action
 	act.sa_handler = &sig_handler;
 
+    // Applying the action to the SIGTERM signal
     sigaction(SIGTERM, &act, NULL);
 }
 
@@ -65,11 +67,7 @@ int main(int argc, char* argv[]) {
     int mode = 1;
 
     // Argument Conditions
-    if (argc != 3 && argc != 2) {
-        printf("Usage: ask3 <nChildren> [--random] [--round-robin]\n");
-        return 1;
-    }
-    else if (!is_digit(argv[1]) || argv[1][0] == '-') {
+    if ((argc != 3 && argc != 2) || (!is_digit(argv[1]) || argv[1][0] == '-')) {
         printf("Usage: ask3 <nChildren> [--random] [--round-robin]\n");
         return 1;
     }
@@ -86,33 +84,38 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Setting the seed to the random number generator
     srand(time(NULL));
 
+    // Setting the signal handler
     set_signal_action();
 
+    // Initializing the array which will contain all the childeren pids
+    // We need to do this in a dynamic way because we also need `child_pid` in the signal handler
     N = string_to_int(argv[1]);
-    
     child_pid = (pid_t *) malloc(N * sizeof(pid_t));
     if (child_pid == NULL) {
         errExit("malloc");
     }
 
-    char c_read_buffer[N][10];
-    char p_read_buffer[N][10];
-    char i_read_buffer[10];
-    char message[N][10];
+    char c_read_buffer[N][10]; // buffer that will be used from the children to read from parent
+    char p_read_buffer[N][10]; // buffer that will be used from the parent to read from children
+    char i_read_buffer[10];    // buffer that will be used from the parent to read from the stdin
+    
+    char message[N][10];       // the message that will be used to communicte through the pipes
 
-    int k;
-    int child_rr = 0;
-    int child_id;
+    int number;                // number which will be used in the parent-child communication
+    
+    int child_id = -1;         // pid of the child that will get the next job from parent
 
+    // Array of the file descriptors that will be used in `pipe` and in the `poll` structure
     int fds[N][2][2];
 
-    // Setting the `poll` structure which will allow us to wait before reading something
-    struct pollfd p2c_pfds[N][1]; // Communications from the parent to the child
-    struct pollfd c2p_pfds[N][1]; // Communication from the child to the parent
+    // Setting the `poll` structure which will allow an object to wait before reading or writing something
+    struct pollfd p2c_pfds[N][1]; // communication from the parent to the children
+    struct pollfd c2p_pfds[N][1]; // communication from the children to the parent
 
-    // Iterating to create fds for all childer
+    // Iterating to create fds for all children
     for (int i=0; i<N; ++i) {
         // Creating 2 file descriptors for two way communication
         for (int j=0; j<2; ++j) {
@@ -120,6 +123,7 @@ int main(int argc, char* argv[]) {
                 errExit("pipe");
             }
         }
+        // Passing the parameters to each `poll` object
         p2c_pfds[i][0].fd = fds[i][p2c][READEND];
         p2c_pfds[i][0].events = POLLIN;
 
@@ -139,6 +143,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Iterating for every child to execute it's code
     for (int i=0; i<N; ++i) {
         if (child_pid[i] == 0) {
             // Child's code
@@ -148,8 +153,10 @@ int main(int argc, char* argv[]) {
             close(fds[i][c2p][READEND]);
 
             while (1) {
-                // Wait untill all the parent has succesfully sent a message to the child
-                poll(p2c_pfds[i], 1, 0);
+                // Wait untill the parent has succesfully sent a message to the child i
+                if (poll(p2c_pfds[i], 1, 0) == -1) {
+                    errExit("poll");
+                }
                 if (p2c_pfds[i][0].revents & POLLIN) {
                     read(fds[i][p2c][READEND], c_read_buffer[i], sizeof(c_read_buffer[i]));
                     printf("[Child=%d, pid=%d] Received number: %s\n", i, getpid(), c_read_buffer[i]);
@@ -158,10 +165,10 @@ int main(int argc, char* argv[]) {
                     sleep(10);
 
                     // Decrement the number
-                    int k = string_to_int(c_read_buffer[i]) - 1;
+                    number = string_to_int(c_read_buffer[i]) - 1;
 
                     // Send message to the parent
-                    strcpy(message[i], int_to_string(k));
+                    strcpy(message[i], int_to_string(number));
                     write(fds[i][c2p][WRITEEND], message[i], (strlen(message[i]) + 1));
                 }
             }
@@ -171,22 +178,28 @@ int main(int argc, char* argv[]) {
     // Parent's Code
     // Every child is going to be captured in the infinite while loop
 
-    // Closing the connections we don't need
     for (int i=0; i<N; ++i) {
+        // Closing the connections we don't need
         close(fds[i][p2c][READEND]);
         close(fds[i][c2p][WRITEEND]);
 
-        // The random number that the parent will send to the child
-        k = random_between(-9, 9);
+        // The random number that the parent will send to the child i
+        number = random_between(-9, 9);
 
         // Send message to child
-        strcpy(message[i], int_to_string(k));
+        strcpy(message[i], int_to_string(number));
         write(fds[i][p2c][WRITEEND], message[i], (strlen(message[i]) + 1));
     }
 
+    // Capturing the parent pid
+    pid = getpid();
+
+    // The main code of the parent processpi
     while (1) {
         // Checking if the user typed something in the stdin
-        poll(i2p_pfds, 1, 0);
+        if (poll(i2p_pfds, 1, 0) == -1) {
+            errExit("poll");
+        }
         if (i2p_pfds[0].revents & POLLIN) {
             read(i2p_pfds[0].fd, i_read_buffer, sizeof(i_read_buffer));
 
@@ -194,10 +207,10 @@ int main(int argc, char* argv[]) {
             i_read_buffer[strlen(i_read_buffer)-1] = '\0';
 
             if (!strcmp(i_read_buffer, "help")) {
-                printf("[Parent] Type a number to send job to a child!\n");
+                printf("[Parent, pid=%d] Type a number to send job to a child\n", pid);
             }
             else if (!strcmp(i_read_buffer, "exit")) {
-                if (kill((pid = getpid()), SIGTERM) == -1) {
+                if (kill(pid, SIGTERM) == -1) {
                     return 1;
                 }
             }
@@ -205,42 +218,46 @@ int main(int argc, char* argv[]) {
                 int task_to;
                 if (mode == 1) {
                     // round-robin
-                    task_to = child_pid[child_rr];
-                    child_id = child_rr;
-                    child_rr = (child_rr + 1) % N;
+                    child_id = (child_id + 1) % N;
+                    task_to = child_pid[child_id];
                 }
                 else {
                     // random
                     child_id = random_between(0, N-1);
                     task_to = child_pid[child_id];
                 }
-                printf("[Parent] Assigned %s to child %d (pid=%d)\n", i_read_buffer, child_id, task_to);
+                printf("[Parent, pid=%d] Assigned %s to child %d (pid=%d)\n", pid, i_read_buffer, child_id, task_to);
             }
             else {
-                printf("[Parent] Type a number to send job to a child!\n");
+                printf("[Parent, pid=%d] Type a number to send job to a child\n", pid);
             }
         }
 
         for (int i=0; i<N; ++i) {
-            // Waiting for the child to sent back a message
-            poll(c2p_pfds[i], 1, 0);
+            // Checking if any child has sent a message to the parent
+            if (poll(c2p_pfds[i], 1, 0) == -1) {
+                errExit("poll");
+            }
             if (c2p_pfds[i][0].revents & POLLIN) {
                 read(fds[i][c2p][READEND], p_read_buffer[i], sizeof(p_read_buffer[i]));
 
-                k = string_to_int(p_read_buffer[i]);
-                printf("[Parent] Received number: %d from child %d (pid=%d)\n", k, i, child_pid[i]);
+                number = string_to_int(p_read_buffer[i]);
+                printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", pid, number, i, child_pid[i]);
 
-                strcpy(message[i], int_to_string(k));
+                // Sending back message to the child i
+                strcpy(message[i], int_to_string(number));
                 write(fds[i][p2c][WRITEEND], message[i], (strlen(message[i]) + 1));
             }
         }
     }
 
+    // Closing all the connections
     for (int i=0; i<N; ++i) {
         close(p2c_pfds[i][0].fd);
         close(c2p_pfds[i][0].fd);
     }
 
+    // Deallocating the memeory space of the `child_pid` array
     free(child_pid);
 
     return 0;
