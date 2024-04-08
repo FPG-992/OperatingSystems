@@ -7,19 +7,27 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <poll.h>
-
+pid_t pid; //process id global variable
+pid_t child; //child process global variable
 
 
 
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
-int pd[2]; //pipe descriptor , one edge for reading and one for writing| PD0 = Read Edge | PD1=Write Edge
-pipe(pd);
 
-printf("ARGV: %s\n", argv[1]);
+int N; //ammount of children parent will create
+N=atoi(argv[1]); //argument to intiger function
 
-printf("%d\n", pd[0]);
-printf("%d\n", pd[1]);
-
+for (int i=0; i<N; i++){
+    if ((child=fork())==-1){
+        perror("fork");
+        exit(0);
+    } else if (child==0){
+        printf("Child %d PID: %d with parent id:%d\n", i, getpid(), getppid());
+        exit(0);
+    }else{
+        wait(NULL);
+    }
+} 
 
 
 }
