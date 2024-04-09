@@ -10,14 +10,15 @@
 pid_t pid; //process id global variable
 pid_t child; //child process global variable
 
-int parent_to_child[2]; //pipe parent to child
-int child_to_parent[2]; //receive pipe descriptor   
-
 
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
 
 int N; //ammount of children parent will create
 N=atoi(argv[1]); //argument to intiger function
+
+//dynamic allocation for pipes
+int (*parent_to_child)[2] = malloc(N*sizeof(*parent_to_child));    //pipe parent to child
+int (*child_to_parent)[2] = malloc(N*sizeof(*child_to_parent));   //receive pipe descriptor  
 
 //start to check for Command Line arguments
 int default_mode = 0; //default mode = round robin (0) or random (1)
@@ -33,10 +34,10 @@ if (argc==2 && N>=1){
     return 0;
 }
 
-
-if (pipe(parent_to_child) == -1 || pipe(child_to_parent) == -1){ //create pipes and check for errors simultaneously
-    perror("pipe");
-    exit(0);
+for (int i=0; i<N; i++){
+if (pipe(parent_to_child[i]) == -1 || pipe(*child_to_parent[i]) == -1){ //create pipes and check for errors simultaneously
+    perror("PIPE CREATION FAILED");
+    exit(EXIT_FAILURE); }
 }
 
 for (int i=0; i<N; i++){
