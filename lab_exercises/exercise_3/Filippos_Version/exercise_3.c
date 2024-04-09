@@ -34,8 +34,8 @@ if (argc==2 && N>=1){
     return 0;
 }
 
-for (int i=0; i<N; i++){
-if (pipe(parent_to_child[i]) == -1 || pipe(*child_to_parent[i]) == -1){ //create pipes and check for errors simultaneously
+for (int i=0; i<N; i++){ //create pipes for n proccesses
+if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create pipes and check for errors simultaneously
     perror("PIPE CREATION FAILED");
     exit(EXIT_FAILURE); }
 }
@@ -53,4 +53,13 @@ for (int i=0; i<N; i++){
 } 
 
 
+
+for (int i=0; i<N; i++){ //for each child
+    wait(NULL);
+}
+
+free(parent_to_child); //free memory of pipe
+free(child_to_parent); //free memory of pipe
+
+return 0;
 }
