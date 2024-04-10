@@ -20,7 +20,6 @@ int is_Digit(char *str){ //function to check if a string is a digit
     }    return 1;
 }
 
-
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
 char command [100]; //command buffer to read input
 
@@ -84,6 +83,11 @@ for (int i=0; i<N; i++){
         printf("Child %d pid: %d\n",i,childpids[i]);
     }
 }
+/*debugging purposes
+for (int i=0; i<N; i++){
+    printf("Child %d pid: %d\n",i,childpids[i]);
+}
+debugging purposes */
 
 int quit = 0; //quit flag
     while (!quit){
@@ -116,7 +120,6 @@ int quit = 0; //quit flag
             printf("Type a number to send job to a child!\n");
         }
     }
-
 
 
 free(parent_to_child); //free memory of pipe
