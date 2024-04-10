@@ -69,19 +69,35 @@ if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create 
 }
 
 for (int i=0; i<N; i++){
-    if ((child==fork())==-1){
-        perror("FORK FAILED");
-        exit(EXIT_FAILURE);
-    }else if ((child==0)){
-        //child code
-        //printing created child i with pid
-        printf("Child %d created with pid: %d and ppid: %d\n",i,getpid(),getppid());
-    }else {
-        //
-    }
-}
+    if ((child=fork())==-1){
+        perror("fork");
+        exit(0);
+    } else if (child==0){
+        close(parent_to_child[i][1]); //close write end of pipe since this is for parent to write and child only reads
+        close(child_to_parent[i][0]); //close read end of pipe since child only writes and parent doesn't read here
+        printf("Child %d PID: %d with parent id:%d\n", i, getpid(), getppid());
+        
+        //entering infinite loop for child to receive tasks execute and send back to parent
 
-int quit = 0; //quit flag
+        while(1){
+            ssize_t bytes_read = read(parent_to_child[i][0], &task, sizeof(task)); //the size read from parent, the number
+            if (bytes_read <= 0){ //we use this to check if the read failed 
+                break;
+            }else {childpids[i] = getpid();}
+            printf("Child %d received task: %d and is now processing\n", i, task); //for debugging purposes
+            task--; //decrement the number by 1 
+            sleep(10); //sleep for 10 seconds as asked from the exercise , this is the processing time, avoiding using <time.h>
+            printf("Child %d finished processing task: %d\n", i, task); //for debugging purposes
+            write(child_to_parent[i][1], &task, sizeof(task)); //send the number back to parent using the write end of child_to_parent
+        }
+        close(parent_to_child[i][0]); //not used anymore
+        close(child_to_parent[i][1]); //not used anymore
+
+        exit(0);
+    }else{ //parent 
+    close(parent_to_child[i][0]); //close read end of pipe of parent to child since the child is the one who reads
+    close(child_to_parent[i][1]); //close write end of pipe of child to parent since the child is not writing here
+    int quit = 0; //quit flag
     while (!quit){
         int pollcount = poll(fds, N+1, -1); //poll for data to read
         if (pollcount<0){
@@ -112,6 +128,13 @@ int quit = 0; //quit flag
             printf("Type a number to send job to a child!\n");
         }
     }
+
+
+    close(parent_to_child[i][1]);
+    close(child_to_parent[i][0]);
+    }
+} 
+
 
 
 for (int i=0; i<N; i++){ //for each child
