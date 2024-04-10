@@ -13,7 +13,7 @@ pid_t child; //child process global variable
 
 
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
-char command [100]; //command buffer to read when exit is given
+char command [100]; //command buffer to read input
 
 int task; //the number given to the child to process to decrement
 int N; //ammount of children parent will create
