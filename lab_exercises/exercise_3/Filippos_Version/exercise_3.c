@@ -17,8 +17,7 @@ int is_Digit(char *str){ //function to check if a string is a digit
         if (!isdigit(str[i])){
             return 0;
         }
-    }
-    return 1;
+    }    return 1;
 }
 
 
@@ -69,15 +68,20 @@ if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create 
 }
 
 for (int i=0; i<N; i++){
-    if ((child==fork())==-1){
+    if ((child=fork())==-1){
         perror("FORK FAILED");
         exit(EXIT_FAILURE);
-    }else if ((child==0)){
+    }else if (child==0){
         //child code
         //printing created child i with pid
         printf("Child %d created with pid: %d and ppid: %d\n",i,getpid(),getppid());
+        exit(0);
     }else {
-        //
+        wait(NULL);
+        //parent code
+        childpids[i] = child; //store the child pids
+        //print child pids
+        printf("Child %d pid: %d\n",i,childpids[i]);
     }
 }
 
@@ -89,20 +93,20 @@ int quit = 0; //quit flag
             exit(EXIT_FAILURE);
         }
         if (fds[N].revents & POLLIN){ //if there is data to read from stdin
-        fgets(command,sizeof(command),stdin); //read the command
+        scanf("%s",command); //read the command
+        printf("Command:%s\n",command); //print the command
         }
         if(strcmp(command,"exit")==0){ //if the command is exit
             quit = 1; //set the quit flag to 1
             //terminate all children processes & parent
-
             break; //break the loop
         }else if (strcmp(command,"help")==0){
             printf("Type a number to send job to a child!\n");
-        }else if (is_Digit(command)>0){ //check if it is an integer , then distribute number to child 
-            task = atoi(command);      //to decrement by 1 and send back to parent using random or round-robin | convert command to int 
+        }else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child 
+            task = atoi(command);  
             if(default_mode==0){ //round-robin
             child_id = (child_id + 1) % N; 
-            task_to = child_id;
+            task_to = child_id; 
             }
             if(default_mode==1){ //random
             child_id = rand() % (N + 1); 
@@ -114,9 +118,6 @@ int quit = 0; //quit flag
     }
 
 
-for (int i=0; i<N; i++){ //for each child
-    wait(NULL);
-}
 
 free(parent_to_child); //free memory of pipe
 free(child_to_parent); //free memory of pipe
