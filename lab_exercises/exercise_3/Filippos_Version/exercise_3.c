@@ -123,8 +123,5 @@ int quit = 0; //quit flag
     }
 
 
-free(parent_to_child); //free memory of pipe
-free(child_to_parent); //free memory of pipe
-
 return 0;
 }
