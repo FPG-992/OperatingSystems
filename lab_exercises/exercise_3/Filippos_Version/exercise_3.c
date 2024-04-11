@@ -32,19 +32,8 @@ int child_id; //shoutout to pjf for the idea
 int task_to; //children which has gotten the task
 
 //dynamic allocation for pipes
-int (*parent_to_child)[2] = malloc(N*sizeof(*parent_to_child));    //pipe parent to child
-int (*child_to_parent)[2] = malloc(N*sizeof(*child_to_parent));   //receive pipe descriptor  
-
-//create poll structure
-struct pollfd fds[N+1]; //N child_to_parent pipes + 1 for stdin (CLI)
-//for child to parent pipes
-for (int i=0; i<N; i++){
-    fds[i].fd = child_to_parent[i][0]; //read end of pipe
-    fds[i].events = POLLIN; //check for data to read
-} 
-//for stdin
-fds[N].fd = STDIN_FILENO; //stdin
-fds[N].events = POLLIN; //check for data to read
+int (parent_to_child)[N][2]; //pipe parent to child
+int (child_to_parent)[N][2]; //receive pipe descriptor  
 
 //start to check for Command Line arguments
 int default_mode = 0; //default mode = round robin (0) or random (1)
@@ -83,6 +72,18 @@ for (int i=0; i<N; i++){
         printf("Child %d pid: %d\n",i,childpids[i]);
     }
 }
+
+//create poll structure
+struct pollfd fds[N+1]; //N child_to_parent pipes + 1 for stdin (CLI)
+//for child to parent pipes
+for (int i=0; i<N; i++){
+    fds[i].fd = child_to_parent[i][0]; //read end of pipe
+    fds[i].events = POLLIN; //check for data to read
+} 
+//for stdin
+fds[N].fd = STDIN_FILENO; //stdin
+fds[N].events = POLLIN; //check for data to read
+
 /*debugging purposes
 for (int i=0; i<N; i++){
     printf("Child %d pid: %d\n",i,childpids[i]);
