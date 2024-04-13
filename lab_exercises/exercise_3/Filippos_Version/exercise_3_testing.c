@@ -135,6 +135,7 @@ int timeout = -1; //timeout for poll function -1 means infinite
         }else {
             printf("Type a number to send job to a child!\n");
         }
+        }
         
         //now check for messages from children
         for (int i=0; i<N; i++){
@@ -142,14 +143,12 @@ int timeout = -1; //timeout for poll function -1 means infinite
                 int number; // the number the child has sent to the parent
                 if (read(child_to_parent[i][READ_END], &number, sizeof(number))==-1){
                     perror("read");
-                    exit(EXIT_FAILURE);
                 } else {
                     printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", pid, number, i, childpids[i]);
                     // Sending back message to the child i
                     if(write(parent_to_child[i][WRITE_END], &number, sizeof(number))==-1){ //parent sends the number back to the child to decrement again
                         perror("write");
-                        exit(EXIT_FAILURE);
-                    } else { printf("Parent sent number %d back to child %d with pid\n",number,i,child_id[i]); }
+                    } else { printf("Parent sent number %d back to child %d \n",number,i); }
                 }
             }
         }
