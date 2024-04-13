@@ -123,7 +123,7 @@ int timeout = -1; //timeout for poll function -1 means infinite
             task_to = child_id; 
             }
             if(default_mode==1){ //random
-            child_id = rand() % (N + 1); 
+            child_id = rand() % (N); 
             task_to = child_id;
             }
             printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", pid, task, child_id, childpids[task_to]);
@@ -137,8 +137,7 @@ int timeout = -1; //timeout for poll function -1 means infinite
         }
         }
         
-        //now check for messages from children
-        for (int i=0; i<N; i++){
+       /* for (int i=0; i<N; i++){
             if (fds[i+1].revents & POLLIN){
                 int number; // the number the child has sent to the parent
                 if (read(child_to_parent[i][READ_END], &number, sizeof(number))==-1){
@@ -152,6 +151,7 @@ int timeout = -1; //timeout for poll function -1 means infinite
                 }
             }
         }
+        */
 
     }
 
