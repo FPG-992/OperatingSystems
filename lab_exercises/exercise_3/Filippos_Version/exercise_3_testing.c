@@ -131,27 +131,13 @@ int timeout = -1; //timeout for poll function -1 means infinite
             if(write(parent_to_child[task_to][WRITE_END], &task, sizeof(task))==-1){
                 perror("write");
                 exit(EXIT_FAILURE);
-            } else { printf("Task sent to child %d\n",task_to);}
+            } else {
+                printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
+            }
         }else {
             printf("Type a number to send job to a child!\n");
         }
         }
-        
-       /* for (int i=0; i<N; i++){
-            if (fds[i+1].revents & POLLIN){
-                int number; // the number the child has sent to the parent
-                if (read(child_to_parent[i][READ_END], &number, sizeof(number))==-1){
-                    perror("read");
-                } else {
-                    printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", pid, number, i, childpids[i]);
-                    // Sending back message to the child i
-                    if(write(parent_to_child[i][WRITE_END], &number, sizeof(number))==-1){ //parent sends the number back to the child to decrement again
-                        perror("write");
-                    } else { printf("Parent sent number %d back to child %d \n",number,i); }
-                }
-            }
-        }
-        */
 
     }
 
