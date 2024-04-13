@@ -10,6 +10,8 @@
 #include <ctype.h>
 #include <signal.h>
 
+#define READ_END 0
+#define WRITE_END 1
 //read end is 0
 //write end is 1
 
@@ -38,6 +40,17 @@ int task_to; //children which has gotten the task
 //pipe initialization
 int (parent_to_child)[N][2]; //pipe parent to child
 int (child_to_parent)[N][2]; //receive pipe descriptor  
+
+//structure for poll function
+struct pollfd fds[N+1]; //array of pollfd structures
+fds[0].fd = 0; //fds[0] is the stdin
+fds[0].events = POLLIN; //polling for input
+//initialize the pollfd structure for the children
+for (int i=0; i<N; i++){
+    fds[i+1].fd = child_to_parent[i][READ_END]; //read end of pipe
+    fds[i+1].events = POLLIN; //polling for input
+}
+
 
 //start to check for Command Line arguments
 int default_mode = 0; //default mode = round robin (0) or random (1)
@@ -86,7 +99,11 @@ for (int i=0; i<N; i++){
 }
 debugging purposes */
 
+//parent process to receive commands from terminal
+pid = getpid(); //get parent pid
+
 int quit = 0; //quit flag
+
     while (!quit){
         scanf("%s",command); //read the command
         printf("Command:%s\n",command); //print the command
@@ -110,6 +127,7 @@ int quit = 0; //quit flag
             child_id = rand() % (N + 1); 
             task_to = child_id;
             }
+            printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", pid, task, child_id, childpids[task_to]);
         }else {
             printf("Type a number to send job to a child!\n");
         }
