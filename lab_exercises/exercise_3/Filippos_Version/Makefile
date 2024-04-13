@@ -1,29 +1,26 @@
-# Define compiler
-CC=gcc
+# Define the compiler
+CC = gcc
 
-# Compiler flags
-CFLAGS=-Wall
+# Define compiler flags
+CFLAGS = -Wall
 
-# Target executable name
-TARGET=out
+# Define the target executable name
+TARGET = out
 
-# Source files
-SOURCES=exercise_3.c
+# Define the source files
+SRC = exercise_3_testing.c
 
-# Object files
-OBJECTS=$(SOURCES:.c=.o)
-
-# Default target
+# Define the default make target
 all: $(TARGET)
-$(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $@
 
-# Rule for object files
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Rule to link the program
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
-# Clean up
+# Clean command to remove the executable
 clean:
-	rm -f $(OBJECTS) $(TARGET)
+	rm -f $(TARGET)
 
-.PHONY: all clean
+# Prevent make from doing something with a file named clean
+.PHONY: clean
+
