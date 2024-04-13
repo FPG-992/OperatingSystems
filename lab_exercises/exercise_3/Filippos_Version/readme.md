@@ -14,12 +14,21 @@ For loop for checking if a child has sent a message to parent
 For loop for closing all connections
 Parent process to receive commands from terminal = On Going
 
-
-int ret = poll(fds, N+1, timeout); //polling for input
-        int ret = poll(fds, N+1, timeout); //polling for input
-        if (ret == -1){
-            perror("poll");
-            exit(EXIT_FAILURE);
+for (int i=0; i<N; i++){
+            if (fds[i+1].revents & POLLIN){
+                int message;
+                if (read(child_to_parent[i][READ_END], &message, sizeof(message))==-1){
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                }else{
+                    printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", pid, message, i, childpids[i]);
+                    //send message back to child
+                    if (write(parent_to_child[i][WRITE_END], &message, sizeof(message))==-1){
+                        perror("write");
+                        exit(EXIT_FAILURE);
+                    }else{
+                        printf("Message sent back to child %d\n",i);
+                    }
+                }
+            }
         }
-
-        int timeout = -1; //timeout for poll function (-1 = infinite)
