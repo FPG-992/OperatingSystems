@@ -8,6 +8,10 @@
 #include <sys/wait.h>
 #include <poll.h>
 #include <ctype.h>
+#include <signal.h>
+
+//read end is 0
+//write end is 1
 
 pid_t pid; //process id global variable
 pid_t child; //child process global variable
@@ -31,7 +35,7 @@ int childpids[N]; //array to store the child pids
 int child_id; //shoutout to pjf for the idea
 int task_to; //children which has gotten the task
 
-//dynamic allocation for pipes
+//pipe initialization
 int (parent_to_child)[N][2]; //pipe parent to child
 int (child_to_parent)[N][2]; //receive pipe descriptor  
 
@@ -49,12 +53,14 @@ if (argc==2 && N>=1){
     return 0;
 }
 
+
 for (int i=0; i<N; i++){ //create pipes for n proccesses
 if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create pipes and check for errors simultaneously
     perror("PIPE CREATION FAILED");
     exit(EXIT_FAILURE); }
 }
 
+//creating children
 for (int i=0; i<N; i++){
     if ((child=fork())==-1){
         perror("FORK FAILED");
@@ -73,16 +79,6 @@ for (int i=0; i<N; i++){
     }
 }
 
-//create poll structure
-struct pollfd fds[N+1]; //N child_to_parent pipes + 1 for stdin (CLI)
-//for child to parent pipes
-for (int i=0; i<N; i++){
-    fds[i].fd = child_to_parent[i][0]; //read end of pipe
-    fds[i].events = POLLIN; //check for data to read
-} 
-//for stdin
-fds[N].fd = STDIN_FILENO; //stdin
-fds[N].events = POLLIN; //check for data to read
 
 /*debugging purposes
 for (int i=0; i<N; i++){
@@ -92,19 +88,16 @@ debugging purposes */
 
 int quit = 0; //quit flag
     while (!quit){
-        int pollcount = poll(fds, N+1, -1); //poll for data to read
-        if (pollcount<0){
-            perror("poll failed"); //if error than exit
-            exit(EXIT_FAILURE);
-        }
-        if (fds[N].revents & POLLIN){ //if there is data to read from stdin
         scanf("%s",command); //read the command
         printf("Command:%s\n",command); //print the command
-        }
         if(strcmp(command,"exit")==0){ //if the command is exit
             quit = 1; //set the quit flag to 1
+            for (int i=0; i<N; i++){
+                kill(childpids[i],SIGTERM); //send SIGTERM to all children
+                printf("Child %d pid: %d terminated\n",i,childpids[i]);
+            }
             //terminate all children processes & parent
-            break; //break the loop
+            exit(0);
         }else if (strcmp(command,"help")==0){
             printf("Type a number to send job to a child!\n");
         }else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child 
