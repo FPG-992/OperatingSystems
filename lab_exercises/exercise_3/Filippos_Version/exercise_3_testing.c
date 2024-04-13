@@ -12,11 +12,6 @@
 
 #define READ_END 0
 #define WRITE_END 1
-//read end is 0
-//write end is 1
-
-int test = 404;
-
 
 pid_t pid; //process id global variable
 pid_t child; //child process global variable
@@ -31,6 +26,8 @@ int is_Digit(char *str){ //function to check if a string is a digit
 
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
 char command [100]; //command buffer to read input
+
+pid = getpid(); //get parent pid
 
 int task; //the number given to the child to process to decrement
 int N; //ammount of children parent will create
@@ -48,7 +45,8 @@ int (child_to_parent)[N][2]; //receive pipe descriptor
 struct pollfd fds[N+1]; //array of pollfd structures
 fds[0].fd = 0; //fds[0] is the stdin
 fds[0].events = POLLIN; //polling for input
-//initialize the pollfd structure for the children
+
+//initialize the pollfd structure for the children & passing pollfd arguments to children 
 for (int i=0; i<N; i++){
     fds[i+1].fd = child_to_parent[i][READ_END]; //read end of pipe
     fds[i+1].events = POLLIN; //polling for input
@@ -95,16 +93,7 @@ for (int i=0; i<N; i++){
     }
 }
 
-
-/*debugging purposes
-for (int i=0; i<N; i++){
-    printf("Child %d pid: %d\n",i,childpids[i]);
-}
-debugging purposes */
-
 //parent process to receive commands from terminal
-pid = getpid(); //get parent pid
-
 int quit = 0; //quit flag
 
 int timeout = -1; //timeout for poll function -1 means infinite
@@ -138,9 +127,6 @@ int timeout = -1; //timeout for poll function -1 means infinite
             task_to = child_id;
             }
             printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", pid, task, child_id, childpids[task_to]);
-            //close unused pipes before sending task to child process
-            //close(parent_to_child[task_to][READ_END]); this causes the parent to hang
-            close(child_to_parent[task_to][WRITE_END]); //close write end of pipe
             //write task to child process
             if(write(parent_to_child[task_to][WRITE_END], &task, sizeof(task))==-1){
                 perror("write");
@@ -149,7 +135,8 @@ int timeout = -1; //timeout for poll function -1 means infinite
         }else {
             printf("Type a number to send job to a child!\n");
         }
-
+        
+        //now check for messages from children
         for (int i=0; i<N; i++){
             if (fds[i+1].revents & POLLIN){
                 int number; // the number the child has sent to the parent
@@ -166,7 +153,6 @@ int timeout = -1; //timeout for poll function -1 means infinite
                 }
             }
         }
-        //now check for messages from children
 
     }
 
