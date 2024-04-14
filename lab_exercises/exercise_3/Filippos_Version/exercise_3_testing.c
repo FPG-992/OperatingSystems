@@ -52,7 +52,7 @@ struct pollfd p2c[N];
 for (int i=0; i<N; i++){
     fds[i+1].fd = child_to_parent[i][READ_END]; //read end of pipe
     fds[i+1].events = POLLIN; //polling for input
-    p2c[i].fd = parent_to_child[i][WRITE_END]; //write end of pipe
+    p2c[i].fd = parent_to_child[i][READ_END]; //read end of pipe
     p2c[i].events = POLLIN; //polling for input
 }
 
@@ -74,6 +74,7 @@ if (argc==2 && N>=1){
 
 for (int i=0; i<N; i++){ //create pipes for n proccesses
 if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create pipes and check for errors simultaneously
+    printf("Pipe creation failed\n");
     perror("PIPE CREATION FAILED");
     exit(EXIT_FAILURE); }
 }
