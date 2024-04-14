@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  if (pid == 0) {
+  if (pid == 0) { // Child code
     int value = 1000;
 
     // close read fds, we will not use them.

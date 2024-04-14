@@ -79,17 +79,21 @@ if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create 
     exit(EXIT_FAILURE); }
 }
 
-//creating children
+//---------------creating children-----------------
 for (int i=0; i<N; i++){
-    if ((childpids[i]=fork())==-1){
-        perror("FORK FAILED");
+    childpids[i] = fork(); //forking the children
+    if (childpids[i] == -1){ //if fork failed
+        perror("fork");
         exit(EXIT_FAILURE);
-    }else {
-        printf("Child %d created with PID: %d\n",i,childpids[i]);
+    }
+    else if (childpids[i] == 0){ //if fork succeeded
+    printf("Child %d created with PID: %d\n",i,getpid());
+        break;
     }
 }
 
-//iterating for every children to execute code
+
+//-------------------iterating for every children to execute code-------------
 for (int i=0; i<N; i++){
 
     if(childpids[i]==0){ //this is child's code
