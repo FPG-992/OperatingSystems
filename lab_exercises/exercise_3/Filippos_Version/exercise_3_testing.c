@@ -157,7 +157,10 @@ int timeout = -1; //timeout for poll function -1 means infinite
                 perror("write");
                 exit(EXIT_FAILURE);
             } else {
+                int debug;
+                read(parent_to_child[task_to][READ_END], &debug, sizeof(debug));
                 printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
+                printf("read gives: %d\n",debug);
             }
         }else {
             printf("Type a number to send job to a child!\n");
