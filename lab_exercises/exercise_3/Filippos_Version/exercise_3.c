@@ -12,8 +12,6 @@
 
 #define READ_END 0
 #define WRITE_END 1
-//read end is 0
-//write end is 1
 
 pid_t pid; //process id global variable
 pid_t child; //child process global variable
@@ -28,6 +26,8 @@ int is_Digit(char *str){ //function to check if a string is a digit
 
 int main(int argc, char* argv[]){ //argc = number of arguments (1 default), argv = arguments
 char command [100]; //command buffer to read input
+
+pid = getpid(); //get parent pid
 
 int task; //the number given to the child to process to decrement
 int N; //ammount of children parent will create
@@ -45,10 +45,15 @@ int (child_to_parent)[N][2]; //receive pipe descriptor
 struct pollfd fds[N+1]; //array of pollfd structures
 fds[0].fd = 0; //fds[0] is the stdin
 fds[0].events = POLLIN; //polling for input
-//initialize the pollfd structure for the children
+
+struct pollfd p2c[N];
+
+//initialize the pollfd structure for the children & passing pollfd arguments to children 
 for (int i=0; i<N; i++){
     fds[i+1].fd = child_to_parent[i][READ_END]; //read end of pipe
     fds[i+1].events = POLLIN; //polling for input
+    p2c[i].fd = parent_to_child[i][WRITE_END]; //write end of pipe
+    p2c[i].events = POLLIN; //polling for input
 }
 
 
@@ -75,36 +80,50 @@ if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create 
 
 //creating children
 for (int i=0; i<N; i++){
-    if ((child=fork())==-1){
+    if ((childpids[i]=fork())==-1){
         perror("FORK FAILED");
         exit(EXIT_FAILURE);
-    }else if (child==0){
-        //child code
-        //printing created child i with pid
-        printf("Child %d created with pid: %d and ppid: %d\n",i,getpid(),getppid());
-        exit(0);
     }else {
-        wait(NULL);
-        //parent code
-        childpids[i] = child; //store the child pids
-        //print child pids
-        printf("Child %d pid: %d\n",i,childpids[i]);
+        printf("Child %d created with PID: %d\n",i,childpids[i]);
     }
 }
 
-
-/*debugging purposes
+//iterating for every children to execute code
 for (int i=0; i<N; i++){
-    printf("Child %d pid: %d\n",i,childpids[i]);
+
+    if(childpids[i]==0){ //this is child's code
+    printf("This is a child process with PID: %d\n",getpid());
+        close(child_to_parent[i][READ_END]); //close read end of pipe
+        close (parent_to_child[i][WRITE_END]); //close write end of pipe
+
+        while(1){
+
+            if (p2c[i].revents & POLLIN){ //if there is input from parent
+                if (read(parent_to_child[i][READ_END], &task, sizeof(task))==-1){
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                }else{
+                    printf("READ SUCCESFULL | Task received from parent: %d\n",task);
+                }
+            }
+
+        }
+
+    }
+
 }
-debugging purposes */
 
 //parent process to receive commands from terminal
-pid = getpid(); //get parent pid
-
 int quit = 0; //quit flag
 
+int timeout = -1; //timeout for poll function -1 means infinite
     while (!quit){
+        int ret = poll(fds, N+1, timeout); //this value is the number of file descriptors that have events
+        if (ret == -1){
+            perror("poll");
+            exit(EXIT_FAILURE);
+        }
+        if (fds[0].revents & POLLIN){ //if there is input from stdin
         scanf("%s",command); //read the command
         printf("Command:%s\n",command); //print the command
         if(strcmp(command,"exit")==0){ //if the command is exit
@@ -124,13 +143,22 @@ int quit = 0; //quit flag
             task_to = child_id; 
             }
             if(default_mode==1){ //random
-            child_id = rand() % (N + 1); 
+            child_id = rand() % (N); 
             task_to = child_id;
             }
             printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", pid, task, child_id, childpids[task_to]);
+            //write task to child process
+            if(write(parent_to_child[task_to][WRITE_END], &task, sizeof(task))==-1){
+                perror("write");
+                exit(EXIT_FAILURE);
+            } else {
+                printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
+            }
         }else {
             printf("Type a number to send job to a child!\n");
         }
+        }
+
     }
 
 

@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
             while (1) {
                 // Wait untill the parent has succesfully sent a message to the child i
-                if (poll(p2c_pfds[i], 1, 0) == -1) {
+                if (poll(p2c_pfds[i], 1, 0) == -1) { 
                     errExit("poll");
                 }
                 if (p2c_pfds[i][0].revents & POLLIN) {

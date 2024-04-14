@@ -46,10 +46,14 @@ struct pollfd fds[N+1]; //array of pollfd structures
 fds[0].fd = 0; //fds[0] is the stdin
 fds[0].events = POLLIN; //polling for input
 
+struct pollfd p2c[N];
+
 //initialize the pollfd structure for the children & passing pollfd arguments to children 
 for (int i=0; i<N; i++){
     fds[i+1].fd = child_to_parent[i][READ_END]; //read end of pipe
     fds[i+1].events = POLLIN; //polling for input
+    p2c[i].fd = parent_to_child[i][WRITE_END]; //write end of pipe
+    p2c[i].events = POLLIN; //polling for input
 }
 
 
@@ -76,21 +80,37 @@ if (pipe(parent_to_child[i]) == -1 || pipe(child_to_parent[i]) == -1){ //create 
 
 //creating children
 for (int i=0; i<N; i++){
-    if ((child=fork())==-1){
+    if ((childpids[i]=fork())==-1){
         perror("FORK FAILED");
         exit(EXIT_FAILURE);
-    }else if (child==0){
-        //child code
-        //printing created child i with pid
-        printf("Child %d created with pid: %d and ppid: %d\n",i,getpid(),getppid());
-        exit(0);
     }else {
-        wait(NULL);
-        //parent code
-        childpids[i] = child; //store the child pids
-        //print child pids
-        printf("Child %d pid: %d\n",i,childpids[i]);
+        printf("Child %d created with PID: %d\n",i,childpids[i]);
     }
+}
+
+//iterating for every children to execute code
+for (int i=0; i<N; i++){
+
+    if(childpids[i]==0){ //this is child's code
+    printf("This is a child process with PID: %d\n",getpid());
+        close(child_to_parent[i][READ_END]); //close read end of pipe
+        close (parent_to_child[i][WRITE_END]); //close write end of pipe
+
+        while(1){
+
+            if (p2c[i].revents & POLLIN){ //if there is input from parent
+                if (read(parent_to_child[i][READ_END], &task, sizeof(task))==-1){
+                    perror("read");
+                    exit(EXIT_FAILURE);
+                }else{
+                    printf("READ SUCCESFULL | Task received from parent: %d\n",task);
+                }
+            }
+
+        }
+
+    }
+
 }
 
 //parent process to receive commands from terminal
