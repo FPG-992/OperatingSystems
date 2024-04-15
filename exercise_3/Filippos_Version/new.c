@@ -44,7 +44,7 @@ int task_to; //children which has gotten the task
 //-------start to check for Command Line arguments-------
 int default_mode = 0; //default mode = round robin (0) or random (1)
 if (argc==2 && N>=1){
-    printf("Default mode: Round Robin\n");
+    printf("Default mode: Round Robin \n");
 }else if (argc==3 && N>=1 && (strcmp(argv[2],"--round-robin")==0)){
     printf("Default mode: Round Robin\n");
 }else if (argc==3 && N>=1 && (strcmp(argv[2],"--random")==0)){
@@ -102,6 +102,38 @@ for (int i=0; i<N; i++){
     PARENT[i].events = POLLIN;
 }
 
+//---Iterating for every child to execute it's code----
+    for (int i=0; i<N; ++i) {
+        if (childpids[i] == 0) {
+            // Child's code
+
+            // Closing the connection we don't need
+            close(parent_to_child[i][WRITE_END]);
+            close(CHILD[i].fd);
+
+            while (1) {
+                // Wait untill the parent has succesfully sent a message to the child i
+                if (poll(&PARENT[i].fd, 1, 0) == -1) {
+                    perror("poll");
+                }
+                if (PARENT[i].revents & POLLIN) {
+                    read(parent_to_child[i][READ_END], &task, sizeof(task));
+                    printf("[Child=%d, pid=%d] Received number: %d\n", i, getpid(), task);
+
+                    // Wait for 10 seconds
+                    sleep(10);
+
+                    // Decrement the number
+                    task--;
+
+                    // Send message to the parent
+                    write(child_to_parent[i][WRITE_END], &task, sizeof(task));
+                }
+            }
+        }
+    }
+
+
 //-----------------Parent Process-----------------
 
 while (1){
@@ -127,7 +159,7 @@ while (1){
             child_id = rand() % (N); 
             task_to = child_id;
             }
-            printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", pid, task, child_id, childpids[task_to]);
+            printf("[Parent, pid=%d] Assigned %d to child %d (pid=%d)\n", getpid(), task, child_id, childpids[task_to]);
             //write task to child process
             if(write(parent_to_child[task_to][WRITE_END], &task, sizeof(task))==-1){
                 perror("write");
