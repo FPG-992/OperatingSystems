@@ -121,7 +121,7 @@ for (int i=0; i<N; i++){
                     printf("[Child=%d, pid=%d] Received number: %d\n", i, getpid(), task);
 
                     // Wait for 10 seconds
-                    sleep(10);
+                    sleep(1);
 
                     // Decrement the number
                     task--;
@@ -149,7 +149,7 @@ while (1){
             exit(0);
         }else if (strcmp(command,"help")==0){
             printf("Type a number to send job to a child!\n");
-        }else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child 
+        }else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child //CODING BLOCK OF IS DIGIT
             task = atoi(command);  
             if(default_mode==0){ //round-robin
             child_id = (child_id + 1) % N; 
@@ -170,7 +170,8 @@ while (1){
                 printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
                 printf("read gives: %d\n",debug);
             }
-        }else {
+        } //CODING BLOCK OF IS DIGIT
+        else {
             printf("Type a number to send job to a child!\n");
         }
 }
