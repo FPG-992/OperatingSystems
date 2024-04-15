@@ -104,7 +104,7 @@ for (int i=0; i<N; i++){
 
 //-----------------Parent Process-----------------
 
-    while (1){
+while (1){
         scanf("%s",command); //read the command
         printf("Command:%s\n",command); //print the command
         if(strcmp(command,"exit")==0){ //if the command is exit
@@ -141,12 +141,6 @@ for (int i=0; i<N; i++){
         }else {
             printf("Type a number to send job to a child!\n");
         }
-        
-
-    }
-
-
-
 
 
 
