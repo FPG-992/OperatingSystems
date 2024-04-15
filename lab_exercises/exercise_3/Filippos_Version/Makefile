@@ -8,7 +8,7 @@ CFLAGS = -Wall
 TARGET = out
 
 # Define the source files
-SRC = exercise_3_testing.c
+SRC = solution.c
 
 # Define the default make target
 all: $(TARGET)
