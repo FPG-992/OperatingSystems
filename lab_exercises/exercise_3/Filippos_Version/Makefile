@@ -8,7 +8,7 @@ CFLAGS = -Wall
 TARGET = out
 
 # Define the source files
-SRC = solution.c
+SRC = new.c
 
 # Define the default make target
 all: $(TARGET)
