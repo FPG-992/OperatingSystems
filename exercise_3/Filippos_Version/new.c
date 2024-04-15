@@ -108,8 +108,8 @@ for (int i=0; i<N; i++){
             // Child's code
 
             // Closing the connection we don't need
-            close(parent_to_child[i][WRITE_END]);
-            close(CHILD[i].fd);
+            //close(parent_to_child[i][WRITE_END]);
+            //close(CHILD[i].fd);
 
             while (1) {
                 // Wait untill the parent has succesfully sent a message to the child i
@@ -127,7 +127,14 @@ for (int i=0; i<N; i++){
                     task--;
                     printf("[Child=%d, pid=%d] Decremented number: %d\n", i, getpid(), task);
                     // Send message to the parent
-                    write(child_to_parent[i][WRITE_END], &task, sizeof(task));
+                    if(write(child_to_parent[i][WRITE_END], &task, sizeof(task))==-1){
+                        perror("write");
+                        exit(EXIT_FAILURE);
+                        } else {printf("Task sent to parent\n");
+                        int test;
+                        read(child_to_parent[i][READ_END], &test, sizeof(test));
+                        printf("test gives: %d\n",test);
+                        }
                 }
             }
         }
