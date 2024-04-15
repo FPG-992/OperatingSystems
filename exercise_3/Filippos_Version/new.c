@@ -125,7 +125,7 @@ for (int i=0; i<N; i++){
 
                     // Decrement the number
                     task--;
-
+                    printf("[Child=%d, pid=%d] Decremented number: %d\n", i, getpid(), task);
                     // Send message to the parent
                     write(child_to_parent[i][WRITE_END], &task, sizeof(task));
                 }
