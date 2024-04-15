@@ -108,8 +108,9 @@ for (int i=0; i<N; i++){
             // Child's code
 
             // Closing the connection we don't need
-            //close(parent_to_child[i][WRITE_END]);
-            //close(CHILD[i].fd);
+            
+            close(parent_to_child[i][WRITE_END]);
+            close(child_to_parent[i][READ_END]);
 
             while (1) {
                 // Wait untill the parent has succesfully sent a message to the child i
@@ -189,6 +190,12 @@ while (1){
 
 
 
+
+// Closing all the connections
+    for (int i=0; i<N; ++i) {
+        close(PARENT[i].fd);
+        close(CHILD[i].fd);
+    }
 
 
 
