@@ -204,6 +204,7 @@ while (1){
     }
 
     for (int i = 0; i < N; i++) {
+    while(1) {
         if (fds[i + 1].revents & POLLIN) {
             // There's data to read from child i
             // Read the data and print it
@@ -211,14 +212,18 @@ while (1){
                 printf("READ SUCCESFULL | Task received from child %d with PID:%d\n",i,childpids[i]);
             }
             printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", getpid(), task, i, childpids[i]);
-            printf("SENDING NUMBER: %d BACK TO CHILD\n",task);
-            if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
-                perror("write");
-                exit(EXIT_FAILURE);
-            } else {
-                printf("Task sent to child %d with PID:%d\n",i,childpids[i]);
+
+            if(1==1) {
+                printf("SENDING NUMBER: %d BACK TO CHILD\n",task);
+                if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
+                    perror("write");
+                    exit(EXIT_FAILURE);
+                } else {
+                    printf("Task sent to child %d with PID:%d\n",i,childpids[i]);
+                }
             }
         }
+    }
     }
        
 
