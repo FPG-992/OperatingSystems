@@ -141,7 +141,7 @@ while (1){
         }else {
             printf("Type a number to send job to a child!\n");
         }
-
+}
 
 
 
