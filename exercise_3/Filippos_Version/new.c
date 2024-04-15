@@ -75,20 +75,6 @@ for (int i=0; i<N; i++){
     }
 }
 
-
-//---- Create N Children -----
-for (int i=0; i<N; i++){
-    childpids[i] = fork(); //forking the children
-    if (childpids[i] == -1){ //if fork failed
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if (childpids[i] == 0){ //if fork succeeded
-    printf("Child %d created with PID: %d\n",i,getpid());
-        break;
-    }
-}
-
 //--- Set up poll structure for terminal parent and children ----
 
 struct pollfd TERMINAL;
@@ -106,14 +92,17 @@ for (int i=0; i<N; i++){
     PARENT[i].events = POLLIN;
 }
 
-//---Iterating for every child to execute it's code----
-    for (int i=0; i<N; ++i) {
-        if (childpids[i] == 0) {
-            // Child's code
+//---- Create N Children -----
+for (int i=0; i<N; i++){
+    childpids[i] = fork(); //forking the children
+    if (childpids[i] == -1){ //if fork failed
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    else if (childpids[i] == 0){ //if fork succeeded
+    printf("Child %d created with PID: %d\n",i,getpid());
 
-            // Closing the connection we don't need
-
-            close(parent_to_child[i][WRITE_END]);
+  close(parent_to_child[i][WRITE_END]);
             close(child_to_parent[i][READ_END]);
 
             while (1) {
@@ -144,9 +133,9 @@ for (int i=0; i<N; i++){
                         }
                 }
             }
-        }
-    }
 
+    }
+}
 
 //-----------------Parent Process-----------------
 
