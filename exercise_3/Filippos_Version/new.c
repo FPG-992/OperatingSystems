@@ -144,6 +144,9 @@ for (int i=0; i<N; i++){
 //-----------------Parent Process-----------------
 
 while (1){
+    close(parent_to_child[task_to][READ_END]);
+    close(child_to_parent[task_to][WRITE_END]);
+    
         scanf("%s",command); //read the command
         printf("Command:%s\n",command); //print the command
         if(strcmp(command,"exit")==0){ //if the command is exit
