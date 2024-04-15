@@ -50,7 +50,11 @@ if (argc==2 && N>=1){
 }else if (argc==3 && N>=1 && (strcmp(argv[2],"--random")==0)){
     default_mode = 1;
     printf("Default mode: Random\n");
-}else{
+}else if(N<=0){
+    printf("Usage: ask3 <nChildren>0> [--random] [--round-robin]\n");
+    return 0;
+}
+else{
     printf("Usage: ask3 <nChildren> [--random] [--round-robin]\n");
     return 0;
 }
