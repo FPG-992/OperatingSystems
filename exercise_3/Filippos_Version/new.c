@@ -108,7 +108,7 @@ for (int i=0; i<N; i++){
             // Child's code
 
             // Closing the connection we don't need
-            
+
             close(parent_to_child[i][WRITE_END]);
             close(child_to_parent[i][READ_END]);
 
@@ -132,9 +132,11 @@ for (int i=0; i<N; i++){
                         perror("write");
                         exit(EXIT_FAILURE);
                         } else {printf("Task sent to parent\n");
-                        int test;
-                        read(child_to_parent[i][READ_END], &test, sizeof(test));
-                        printf("test gives: %d\n",test);
+
+                        //int test; debug purposes
+                        //read(child_to_parent[i][READ_END], &test, sizeof(test));
+                        //printf("test gives: %d\n",test);
+
                         }
                 }
             }
@@ -158,9 +160,11 @@ while (1){
             //terminate all children processes & parent
             printf("Parent pid: %d terminated\n",getpid());
             exit(0);
-        }else if (strcmp(command,"help")==0){
+        }
+        else if (strcmp(command,"help")==0){
             printf("Type a number to send job to a child!\n");
-        }else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child //CODING BLOCK OF IS DIGIT
+        }
+        else if (is_Digit(command)==1){ //check if it is an integer , then distribute number to child //CODING BLOCK OF IS DIGIT
             task = atoi(command);  
             if(default_mode==0){ //round-robin
             child_id = (child_id + 1) % N; 
@@ -176,16 +180,16 @@ while (1){
                 perror("write");
                 exit(EXIT_FAILURE);
             } else {
-                int debug;
-                read(parent_to_child[task_to][READ_END], &debug, sizeof(debug));
                 printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
-                printf("read gives: %d\n",debug);
+
             }
         } //CODING BLOCK OF IS DIGIT
         else {
             printf("Type a number to send job to a child!\n");
         }
-}
+    } 
+    
+
 
 
 
