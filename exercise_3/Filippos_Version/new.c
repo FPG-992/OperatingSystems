@@ -77,11 +77,11 @@ for (int i=0; i<N; i++){
 
 //--- Set up poll structure for parent
 
-struct pollfd PARENT[N];
+struct pollfd PARENT[N][1];
 
 for (int i=0; i<N; i++){
-    PARENT[i].fd = parent_to_child[i][READ_END];
-    PARENT[i].events = POLLIN;
+    PARENT[i][0].fd = parent_to_child[i][READ_END];
+    PARENT[i][0].events = POLLIN;
 }
 
 //---- Create N Children -----
@@ -99,15 +99,15 @@ for (int i=0; i<N; i++){
 
     while (1) {
         // Wait untill the parent has succesfully sent a message to the child i
-        if (poll(&PARENT[i].fd, 1, 0) == -1) {
+        if (poll(&PARENT[i][0].fd, 1, 0) == -1) {
             perror("poll");
         }
-        if (PARENT[i].revents & POLLIN) {
+        if (PARENT[i][0].revents & POLLIN) {
             read(parent_to_child[i][READ_END], &task, sizeof(task));
             printf("[Child=%d, pid=%d] Received number: %d\n", i, getpid(), task);
 
             // Wait for 10 seconds
-            sleep(1);
+            sleep(10);
 
             // Decrement the number
             task--;
@@ -132,13 +132,16 @@ for (int i=0; i<N; i++){
 //-----------------Parent Process-----------------
 
 //---setup poll structure for terminal & child
-struct pollfd fds[N + 1];
-fds[0].fd = 0;  // Standard input
-fds[0].events = POLLIN;
+struct pollfd fds[N + 1][1];
+fds[0][0].fd = 0;  // Standard input
+fds[0][0].events = POLLIN;
 for (int i = 0; i < N; i++) {
-    fds[i + 1].fd = child_to_parent[i][READ_END];
-    fds[i + 1].events = POLLIN;
+
+    fds[i + 1][0].fd = child_to_parent[i][READ_END];
+    fds[i + 1][0].events = POLLIN;
+
 }
+
 
 while (1){
     close(parent_to_child[task_to][READ_END]);
@@ -184,44 +187,43 @@ while (1){
 
     //check for input from terminal and children and sent back to children    
 
-    int ret = poll(fds, N + 1, -1);  // Wait indefinitely
+int ret = poll(fds, N + 1, -1);  // Wait indefinitely
 
-    if (ret == -1) {
-        perror("poll");
-        exit(EXIT_FAILURE);
-    }
+if (ret == -1) {
+    perror("poll");
+    exit(EXIT_FAILURE);
+}
 
-    if (fds[0].revents & POLLIN) {
-        // there is data on STDIN
-        // Read data and send to child
-    }
+if (fds[0][0].revents & POLLIN) {
+    // there is data on STDIN
+    // Read data and send to child
+}
 
-    for (int i = 0; i < N; i++) {
-    while(1) {
-        if (fds[i + 1].revents & POLLIN) {
-            // There's data to read from child i
-            // Read the data and print it
-            if((read(child_to_parent[i][READ_END], &task, sizeof(task)))!=-1){
-                printf("READ SUCCESFULL | Task received from child %d with PID:%d\n",i,childpids[i]);
-            }
-            printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", getpid(), task, i, childpids[i]);
+while (1){
+for (int i = 0; i < N; i++) {
+    if (fds[i + 1][0].revents & POLLIN) {
+        // There's data to read from child i
+        // Read the data and print it
+        if((read(child_to_parent[i][READ_END], &task, sizeof(task)))!=-1){
+            printf("READ SUCCESFULL | Task received from child %d with PID:%d\n",i,childpids[i]);
+        }
+        printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", getpid(), task, i, childpids[i]);
 
-            if(1==1) {
-                printf("SENDING NUMBER: %d BACK TO CHILD\n",task);
-                if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
-                    perror("write");
-                    exit(EXIT_FAILURE);
-                } else {
-                    printf("Task sent to child %d with PID:%d\n",i,childpids[i]);
-                }
+        if(1==1) {
+            printf("SENDING NUMBER: %d BACK TO CHILD\n",task);
+            if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
+                perror("write");
+                exit(EXIT_FAILURE);
+            } else {
+                printf("Task sent to child %d with PID:%d\n",i,childpids[i]);
             }
         }
     }
-    }
-       
+}
+}
 
-    } 
-    
+} 
+
 
 
 
@@ -230,8 +232,8 @@ while (1){
 
 // Closing all the connections
     for (int i=0; i<N; ++i) {
-        close(PARENT[i].fd);
-        close(fds[i+1].fd);
+        close(PARENT[i][0].fd);
+        close(fds[i+1][0].fd);
     }
 
 
