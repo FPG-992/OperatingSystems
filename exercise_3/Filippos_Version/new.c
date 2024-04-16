@@ -105,7 +105,6 @@ for (int i=0; i<N; i++){
         if (PARENT[i][0].revents & POLLIN) {
             read(parent_to_child[i][READ_END], &task, sizeof(task));
             printf("[Child=%d, pid=%d] Received number: %d\n", i, getpid(), task);
-
             // Wait for 10 seconds
             sleep(10);
 
@@ -144,10 +143,23 @@ for (int i = 0; i < N; i++) {
 
 
 while (1){
+
+
+int ret = poll(fds, N + 1, -1);  // Wait indefinitely
+
+if (ret == -1) {
+perror("poll");
+exit(EXIT_FAILURE);
+}
+
     close(parent_to_child[task_to][READ_END]);
     close(child_to_parent[task_to][WRITE_END]);
     
-        scanf("%s",command); //read the command
+        //scanf("%s",command); //read the command
+        if (fds[0][0].revents & POLLIN) {
+            read(0, command, sizeof(command));
+            command[strlen(command)-1] = '\0'; //remove the newline character
+        }
         printf("Command:%s\n",command); //print the command
         if(strcmp(command,"exit")==0){ //if the command is exit
             for (int i=0; i<N; i++){
@@ -178,7 +190,6 @@ while (1){
                 exit(EXIT_FAILURE);
             } else {
                 printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
-
             }
         } //CODING BLOCK OF IS DIGIT
         else {
@@ -187,19 +198,6 @@ while (1){
 
     //check for input from terminal and children and sent back to children    
 
-int ret = poll(fds, N + 1, -1);  // Wait indefinitely
-
-if (ret == -1) {
-    perror("poll");
-    exit(EXIT_FAILURE);
-}
-
-if (fds[0][0].revents & POLLIN) {
-    // there is data on STDIN
-    // Read data and send to child
-}
-
-while (1){
 for (int i = 0; i < N; i++) {
     if (fds[i + 1][0].revents & POLLIN) {
         // There's data to read from child i
@@ -219,7 +217,6 @@ for (int i = 0; i < N; i++) {
             }
         }
     }
-}
 }
 
 } 
