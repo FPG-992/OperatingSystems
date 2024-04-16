@@ -37,7 +37,7 @@ int childpids[N]; //array to store the child pids
 
 int task; //the number given to the child to process to decrement by the terminal
 
-int child_id=0; //child id
+int child_id=-1; //child id
 
 int task_to; //children which has gotten the task
 
@@ -99,10 +99,10 @@ for (int i=0; i<N; i++){
 
     while (1) {
         // Wait untill the parent has succesfully sent a message to the child i
-        if (poll(&PARENT[i][0].fd, 1, 0) == -1) {
+        if (poll(PARENT[i], 1, 0) == -1) {
             perror("poll");
         }
-        if (PARENT[i][0].revents & POLLIN) {
+        if (PARENT[i][0].revents & POLLIN) { //if there is data to read
             read(parent_to_child[i][READ_END], &task, sizeof(task));
             printf("[Child=%d, pid=%d] Received number: %d\n", i, getpid(), task);
             // Wait for 10 seconds
@@ -115,13 +115,8 @@ for (int i=0; i<N; i++){
             if(write(child_to_parent[i][WRITE_END], &task, sizeof(task))==-1){
                 perror("write");
                 exit(EXIT_FAILURE);
-                } else {
-                    printf("Task sent to parent\n");
-                //int test; debug purposes
-                //read(child_to_parent[i][READ_END], &test, sizeof(test));
-                //printf("test gives: %d\n",test);
-
                 }
+
         }
     }
 
@@ -203,19 +198,15 @@ for (int i = 0; i < N; i++) {
         // There's data to read from child i
         // Read the data and print it
         if((read(child_to_parent[i][READ_END], &task, sizeof(task)))!=-1){
-            printf("READ SUCCESFULL | Task received from child %d with PID:%d\n",i,childpids[i]);
+            printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", getpid(), task, i, childpids[i]);
         }
-        printf("[Parent, pid=%d] Received number: %d from child %d (pid=%d)\n", getpid(), task, i, childpids[i]);
-
-        if(1==1) {
-            printf("SENDING NUMBER: %d BACK TO CHILD\n",task);
-            if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
-                perror("write");
-                exit(EXIT_FAILURE);
-            } else {
-                printf("Task sent to child %d with PID:%d\n",i,childpids[i]);
-            }
-        }
+        
+        // Send the data back to the child
+        if(write(parent_to_child[i][WRITE_END], &task, sizeof(task))==-1){
+            perror("write");
+            exit(EXIT_FAILURE);
+        } 
+        
     }
 }
 
