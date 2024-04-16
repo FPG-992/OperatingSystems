@@ -185,6 +185,7 @@ exit(EXIT_FAILURE);
                 exit(EXIT_FAILURE);
             } else {
                 printf("WRITE SUCCESFULL | Task sent to child %d with PID:%d\n",task_to,childpids[task_to]);
+                memset(command, 0, sizeof(command));
             }
         } //CODING BLOCK OF IS DIGIT
         else {
