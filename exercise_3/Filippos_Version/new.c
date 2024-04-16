@@ -75,19 +75,11 @@ for (int i=0; i<N; i++){
     }
 }
 
-//--- Set up poll structure for terminal parent and children ----
+//--- Set up poll structure for parent
 
-struct pollfd TERMINAL;
-TERMINAL.fd = 0; //stdin
-TERMINAL.events = POLLIN; //polling for input
-
-struct pollfd CHILD[N];
 struct pollfd PARENT[N];
 
 for (int i=0; i<N; i++){
-    CHILD[i].fd = child_to_parent[i][READ_END];
-    CHILD[i].events = POLLIN;
-
     PARENT[i].fd = parent_to_child[i][READ_END];
     PARENT[i].events = POLLIN;
 }
@@ -139,6 +131,7 @@ for (int i=0; i<N; i++){
 
 //-----------------Parent Process-----------------
 
+//---setup poll structure for terminal & child
 struct pollfd fds[N + 1];
 fds[0].fd = 0;  // Standard input
 fds[0].events = POLLIN;
@@ -238,7 +231,7 @@ while (1){
 // Closing all the connections
     for (int i=0; i<N; ++i) {
         close(PARENT[i].fd);
-        close(CHILD[i].fd);
+        close(fds[i+1].fd);
     }
 
 
