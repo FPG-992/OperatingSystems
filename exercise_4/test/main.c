@@ -72,5 +72,8 @@ int main(int argc, char *argv[]){
        }
 
        printf("Connected to %s:%d\n", host, port);
+       print_help();
 
+       char buffer[1024];
+       
 }
