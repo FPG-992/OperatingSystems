@@ -27,7 +27,7 @@ int main(int argc, char *argv[]){
        int debug = 0;
        int opt;
 
-       while((opt = getopt(argc, argv, "host:port:debug")) != -1){
+       while((opt = getopt(argc, argv, "h:p:d")) != -1){
               switch(opt){
                      case 'host':
                             host = optarg;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
        memset(&server_addr, 0, sizeof(server_addr));
        server_addr.sin_family = AF_INET;
        server_addr.sin_port = htons(port);
-       server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+       //server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
        bind(sockfd, &server_addr, sizeof(server_addr));
 
