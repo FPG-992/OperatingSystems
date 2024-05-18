@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <time.h>
+#include <netdb.h>
+
 
 #define DEFAULT_HOST "os4.iot.dslab.ds.open-cloud.xyz"
 #define DEFAULT_PORT 20241
@@ -42,25 +44,40 @@ void parse_arguments(int argc, char *argv[], char**host, int *port){
         }
 }
 
-int create_connect_socket(char *host, int port){
+
+int create_connect_socket(char *host, int port) {
     int sockfd;
     struct sockaddr_in server_addr;
+    struct hostent *hostp;
+
+    // Create socket
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
+
+    // Resolve hostname to IP address
+    hostp = gethostbyname(host);
+    if (hostp == NULL) {
+        fprintf(stderr, "Error: Invalid hostname\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up server address structure
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(port);
+    bcopy((char *)hostp->h_addr_list[0], (char *)&server_addr.sin_addr.s_addr, hostp->h_length);
 
-    if (inet_pton(AF_INET, host, &server_addr.sin_addr) <= 0) {
-        perror("Invalid address/ Address not supported");
-        exit(EXIT_FAILURE);
-    }
-
+    // Connect to the server
     if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Connection Failed");
+        close(sockfd);
         exit(EXIT_FAILURE);
+    } else {
+        printf("Connected to server %s:%d\n", host, port);
     }
+
     return sockfd;
 }
 
