@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -180,7 +181,8 @@ void run_client(int sockfd) {
                 break;
             } else if (strcmp(buffer, "get") == 0){
                 handle_get(sockfd);
-            } else if (strncmp(buffer, "N ", 2) == 0){
+            } else if (isdigit(buffer[0])){
+                printf("User requested permission\n");
                 handle_exit_request(sockfd, buffer);
             } else {
                 printf("Unknown command: %s\n", buffer);
