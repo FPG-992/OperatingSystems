@@ -170,8 +170,28 @@ void run_client(int sockfd) {
             }
             
         }
+        if (FD_ISSET(sockfd, &readfds)){
+            int n = recv(sockfd, buffer, BUFFER_SIZE, 0);
+            if (n==0){
+                printf("server closed connection\n");
+            }
+            buffer[n] = '\0';
+
+            if (debug) {
+                printf("[DEBUG] received '%s'\n", buffer);
+            }
+            printf("Received from server: %s\n", buffer);
+        }
     }
+    close(sockfd);
+}
 
-    if ()
-
+int main(int argc, char *argv[]) {
+    char *host;
+    int port;
+    parse_arguments(argc, argv, &host, &port);
+    int sockfd = create_connect_socket(host, port);
+    print_help();
+    run_client(sockfd);
+    return 0;
 }
