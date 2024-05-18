@@ -90,6 +90,7 @@ void handle_get(int sockfd){
     send(sockfd, buffer, strlen(buffer), 0);
 
     if (debug) {
+        buffer[strcspn(buffer, "\n")] = '\0';
         printf("[DEBUG] sent 'get'\n");
     }
 
@@ -97,6 +98,7 @@ void handle_get(int sockfd){
     buffer[n] = '\0';
 
     if (debug) {
+        buffer[strcspn(buffer, "\n")] = '\0';
         printf("[DEBUG] received '%s'\n", buffer);
     }
 
@@ -128,12 +130,14 @@ void handle_exit_request(int sockfd, char *request){
     
     send (sockfd, request, strlen(request), 0);
     if(debug){
+        buffer[strcspn(buffer, "\n")] = '\0';
         printf("[DEBUG] sent '%s'\n", request);
     }
     n = recv(sockfd, buffer, BUFFER_SIZE, 0);
     buffer[n] = '\0';
 
     if (debug) {
+        buffer[strcspn(buffer, "\n")] = '\0';
         printf("[DEBUG] received '%s'\n", buffer);
     }
 
@@ -147,11 +151,13 @@ void handle_exit_request(int sockfd, char *request){
 
         send(sockfd, buffer, strlen(buffer), 0);
         if (debug) {
+            buffer[strcspn(buffer, "\n")] = '\0';
             printf("[DEBUG] sent '%s'\n", buffer);
         }
         n = recv(sockfd, buffer, BUFFER_SIZE, 0);
         buffer[n] = '\0';
         if (debug){
+            buffer[strcspn(buffer, "\n")] = '\0';
             printf("[DEBUG] received '%s'\n", buffer);
         }
         printf("Response: %s\n", buffer);
@@ -194,11 +200,14 @@ void run_client(int sockfd) {
             if (n==0){
                 printf("server closed connection\n");
             }
+
             buffer[n] = '\0';
 
             if (debug) {
+                buffer[strcspn(buffer, "\n")] = '\0';
                 printf("[DEBUG] received '%s'\n", buffer);
             }
+
             printf("Received from server: %s\n", buffer);
         }
     }
