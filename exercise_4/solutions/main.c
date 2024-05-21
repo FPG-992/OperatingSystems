@@ -14,11 +14,11 @@
 
 #define DEFAULT_HOST "os4.iot.dslab.ds.open-cloud.xyz"
 #define DEFAULT_PORT 20241
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1024 // Buffer size for reading from socket, sending to socket, and reading from stdin
 
 int debug = 0;
 
-void print_help(){
+void print_help(){ //prints the help message
     printf("Available commands:\n");
     printf("help : Print this help message\n");
     printf("exit : Exit the program\n");
@@ -26,7 +26,7 @@ void print_help(){
     printf("N name surname reason : Request exit permission\n");
 }
 
-void parse_arguments(int argc, char *argv[], char**host, int *port){
+void parse_arguments(int argc, char *argv[], char**host, int *port){ //parses the arguments
     *host = DEFAULT_HOST;
     *port = DEFAULT_PORT;
     for (int i = 1; i < argc; i++) {
@@ -46,10 +46,10 @@ void parse_arguments(int argc, char *argv[], char**host, int *port){
 }
 
 
-int create_connect_socket(char *host, int port) {
-    int sockfd;
-    struct sockaddr_in server_addr;
-    struct hostent *hostp;
+int create_connect_socket(char *host, int port) { //creates a socket and connects to the server
+    int sockfd; // Socket file descriptor
+    struct sockaddr_in server_addr; // Server address
+    struct hostent *hostp; // Host entry for resolving hostname to IP address
 
     // Create socket
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -57,48 +57,48 @@ int create_connect_socket(char *host, int port) {
         exit(EXIT_FAILURE);
     }
 
-    // Resolve hostname to IP address
-    hostp = gethostbyname(host);
+    // Resolve hostname to IP address because can't connect to just a name :)
+    hostp = gethostbyname(host); 
     if (hostp == NULL) {
         fprintf(stderr, "Error: Invalid hostname\n");
         exit(EXIT_FAILURE);
     }
 
-    // Set up server address structure
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    bcopy((char *)hostp->h_addr_list[0], (char *)&server_addr.sin_addr.s_addr, hostp->h_length);
+    // Set up server address structure to connect to
+    memset(&server_addr, 0, sizeof(server_addr)); // Zero out the structure
+    server_addr.sin_family = AF_INET; // Internet address family
+    server_addr.sin_port = htons(port); // Server port htons() converts host byte order to network byte order
+    bcopy((char *)hostp->h_addr_list[0], (char *)&server_addr.sin_addr.s_addr, hostp->h_length); // Server IP address
 
     // Connect to the server
-    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Connection Failed");
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {  // Connect to the server
+        perror("Connection Failed"); 
         close(sockfd);
         exit(EXIT_FAILURE);
     } else {
-        printf("Connected to server %s:%d\n", host, port);
+        printf("Connected to server Succesfully %s:%d\n", host, port); // Connection successful | Debugging
     }
 
     return sockfd;
 }
 
-void handle_get(int sockfd){
-    char buffer[BUFFER_SIZE];
-    int n;
+void handle_get(int sockfd){ //handles the get command
+    char buffer[BUFFER_SIZE]; // Buffer for sending and receiving data
+    int n; 
     
-    strcpy(buffer, "get\n");
-    send(sockfd, buffer, strlen(buffer), 0);
+    strcpy(buffer, "get\n"); //copy string into buffer
+    send(sockfd, buffer, strlen(buffer), 0); // Send 'get' command to server
 
     if (debug) {
-        buffer[strcspn(buffer, "\n")] = '\0';
-        printf("[DEBUG] sent 'get'\n");
+        buffer[strcspn(buffer, "\n")] = '\0'; // Remove newline character
+        printf("[DEBUG] sent 'get'\n"); // Debugging
     }
 
-    n = recv(sockfd, buffer, BUFFER_SIZE, 0);
-    buffer[n] = '\0';
+    n = recv(sockfd, buffer, BUFFER_SIZE, 0); // Receive data from server
+    buffer[n] = '\0'; 
 
     if (debug) {
-        buffer[strcspn(buffer, "\n")] = '\0';
+        buffer[strcspn(buffer, "\n")] = '\0'; //mark end of string
         printf("[DEBUG] received '%s'\n", buffer);
     }
 
@@ -173,7 +173,7 @@ void run_client(int sockfd) {
         FD_SET(sockfd, &readfds);
         FD_SET(STDIN_FILENO, &readfds);
 
-        int maxfd = sockfd > STDIN_FILENO ? sockfd : STDIN_FILENO;
+        int maxfd = sockfd > STDIN_FILENO ? sockfd : STDIN_FILENO; //what this does is it sets maxfd to the highest value of the two file descriptors
         
         select(maxfd + 1, &readfds, NULL, NULL, NULL);
 
