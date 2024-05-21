@@ -52,9 +52,9 @@ int create_connect_socket(char *host, int port) { //creates a socket and connect
     struct hostent *hostp; // Host entry for resolving hostname to IP address
 
     // Create socket
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) { //socket is an endpoint for communication which | 2 IDS, port & host
+        perror("socket creation failed"); //socket stream , tcp , reliable , OS checks for errors & packets
+        exit(EXIT_FAILURE); //af_inet is the adress family for ipv4
     }
 
     // Resolve hostname to IP address because can't connect to just a name :)
@@ -124,48 +124,48 @@ void handle_get(int sockfd){ //handles the get command
     printf("Timestamp is :%s", asctime(lt));
 }
 
-void handle_exit_request(int sockfd, char *request){
+void handle_exit_request(int sockfd, char *request){ //when given exit this gets executed
     char buffer[BUFFER_SIZE];
     int n;
     
-    send (sockfd, request, strlen(request), 0);
-    if(debug){
-        buffer[strcspn(buffer, "\n")] = '\0';
-        printf("[DEBUG] sent '%s'\n", request);
+    send (sockfd, request, strlen(request), 0); //send the request to the server
+    if(debug){ //if debug is enabled
+        buffer[strcspn(buffer, "\n")] = '\0'; //mark end of string
+        printf("[DEBUG] sent '%s'\n", request); //print the request
     }
-    n = recv(sockfd, buffer, BUFFER_SIZE, 0);
-    buffer[n] = '\0';
+    n = recv(sockfd, buffer, BUFFER_SIZE, 0); //receive the response from the server
+    buffer[n] = '\0'; //mark end of string
 
     if (debug) {
-        buffer[strcspn(buffer, "\n")] = '\0';
-        printf("[DEBUG] received '%s'\n", buffer);
+        buffer[strcspn(buffer, "\n")] = '\0'; //mark end of string
+        printf("[DEBUG] received '%s'\n", buffer); //print the response
     }
 
-    if (strncmp(buffer, "try again", 9) == 0){
-        printf("Response: Try again\n");
+    if (strncmp(buffer, "try again", 9) == 0){ //if the response is try again
+        printf("Response: Try again\n"); //print try again
     } else {
-        printf("Send verification code: '%s'\n", buffer);
-        printf("Enter verification code: ");
-        fgets(buffer, BUFFER_SIZE, stdin);
+        printf("Send verification code: '%s'\n", buffer); //print the verification code
+        printf("Enter verification code: "); //print the verification code
+        fgets(buffer, BUFFER_SIZE, stdin); //get the verification code
         buffer[strcspn(buffer, "\n")] = 0;
 
-        send(sockfd, buffer, strlen(buffer), 0);
+        send(sockfd, buffer, strlen(buffer), 0); //send the verification code to the server
         if (debug) {
             buffer[strcspn(buffer, "\n")] = '\0';
-            printf("[DEBUG] sent '%s'\n", buffer);
+            printf("[DEBUG] sent '%s'\n", buffer); //print the verification code
         }
-        n = recv(sockfd, buffer, BUFFER_SIZE, 0);
+        n = recv(sockfd, buffer, BUFFER_SIZE, 0); //receive the response from the server
         buffer[n] = '\0';
-        if (debug){
-            buffer[strcspn(buffer, "\n")] = '\0';
-            printf("[DEBUG] received '%s'\n", buffer);
+        if (debug){ //if debug is enabled
+            buffer[strcspn(buffer, "\n")] = '\0'; //mark end of string
+            printf("[DEBUG] received '%s'\n", buffer); //print the response
         }
         printf("Response: %s\n", buffer);
     }
 }
 
-void run_client(int sockfd) {
-    fd_set readfds;
+void run_client(int sockfd) { //runs the client
+    fd_set readfds; // File descriptor set for select()
     char buffer[BUFFER_SIZE];
 
     while(1){
@@ -175,11 +175,11 @@ void run_client(int sockfd) {
 
         int maxfd = sockfd > STDIN_FILENO ? sockfd : STDIN_FILENO; //what this does is it sets maxfd to the highest value of the two file descriptors
         
-        select(maxfd + 1, &readfds, NULL, NULL, NULL);
+        select(maxfd + 1, &readfds, NULL, NULL, NULL); //selects the file descriptor with the highest value
 
-        if (FD_ISSET(STDIN_FILENO, &readfds)){
-            fgets(buffer, BUFFER_SIZE, stdin);
-            buffer[strcspn(buffer, "\n")] = 0;
+        if (FD_ISSET(STDIN_FILENO, &readfds)){ //if the file descriptor is set
+            fgets(buffer, BUFFER_SIZE, stdin); //get the input from the user
+            buffer[strcspn(buffer, "\n")] = 0; //mark end of string
                 
             if (strcmp(buffer, "help") == 0){
                 print_help();
@@ -195,8 +195,8 @@ void run_client(int sockfd) {
             }
             
         }
-        if (FD_ISSET(sockfd, &readfds)){
-            int n = recv(sockfd, buffer, BUFFER_SIZE, 0);
+        if (FD_ISSET(sockfd, &readfds)){ //if the file descriptor is set
+            int n = recv(sockfd, buffer, BUFFER_SIZE, 0); //receive the response from the server
             if (n==0){
                 printf("server closed connection\n");
             }
